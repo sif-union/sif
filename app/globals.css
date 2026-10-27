@@ -6,6 +6,7 @@
   --series-1: #2a78d6; --bench: #8a8984;
   --div-neg: #e34948; --div-mid: #e4e2dc; --div-pos: #2a78d6;
   --good: #0ca30c; --bad: #d03b3b;
+  --garnet: #8a1f2d; /* Union College's color */
   --hatch: rgba(0,0,0,.07);
   --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06);
   /* controls: a recessed track, and a raised, lighter "on" state in both themes */
@@ -19,6 +20,7 @@
     --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
     --series-1: #3987e5; --bench: #8f8e86;
     --div-neg: #e66767; --div-mid: #383835; --div-pos: #3987e5;
+    --garnet: #d4707c;
     --hatch: rgba(255,255,255,.06);
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
     --ctl-track: #1c1c1a; --ctl-border: #34342f; --ctl-on: #3a3a35; --ctl-on-border: #4a4a44;

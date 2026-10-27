@@ -16,7 +16,7 @@ export default function Header({ data, period, onPeriod, view, onView }: Props) 
         <div className={styles.top}>
           <div className={styles.brand}>
             <span className={styles.eyebrow}>Union College Student Investment Fund</span>
-            <h1>Equity Fund holdings</h1>
+            <h1>Equity Fund Holdings</h1>
           </div>
           <div className="seg" role="tablist" aria-label="View">
             <button aria-pressed={view === "holdings"} onClick={() => onView("holdings")}>Holdings</button>

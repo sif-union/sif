@@ -7,7 +7,7 @@
 .top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .brand { display: flex; flex-direction: column; margin-right: auto; }
 .brand h1 { margin: 0; font: 400 28px/1.05 var(--font-serif), Georgia, serif; letter-spacing: -.01em; }
-.eyebrow { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+.eyebrow { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--garnet); font-weight: 600; }
 
 .periodList { display: flex; gap: 2px; }
 
