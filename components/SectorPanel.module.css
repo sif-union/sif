@@ -1,0 +1,41 @@
+.panel { position: fixed; left: 0; right: 0; bottom: 0; top: var(--hdr-h, 112px); z-index: 20; background: var(--bg); overflow-y: auto; }
+.fly { position: fixed; z-index: 25; pointer-events: none; }
+
+.head { position: sticky; top: 0; z-index: 5; padding: 16px 24px 18px; }
+.headInner { max-width: 1100px; margin: 0 auto; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.back {
+  border: 0; border-radius: 999px; padding: 8px 14px 8px 10px; cursor: pointer; font-weight: 600; font-size: 13px; color: inherit;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+.back:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.title { font: 400 40px/1 var(--font-serif), Georgia, serif; margin: 0; }
+.facts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; margin-left: auto; }
+.pill { background: var(--surface-1); color: var(--text-secondary); border-radius: 999px; padding: 4px 11px; white-space: nowrap; }
+.pill b { font-weight: 600; color: var(--text-primary); }
+.pill b:global(.pos) { color: var(--good); }
+.pill b:global(.neg) { color: var(--bad); }
+
+.tools { max-width: 1100px; margin: 0 auto; padding: 28px 24px 0; display: flex; align-items: center; gap: 12px; }
+.search { position: relative; flex: 1; }
+.search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+.search input {
+  width: 100%; font: inherit; font-size: 15px; color: var(--text-primary); background: var(--surface-1);
+  border: 1px solid var(--border); border-radius: 12px; padding: 12px 44px 12px 40px; outline: none;
+}
+.search input:focus { border-color: var(--series-1); box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-1) 25%, transparent); }
+.search kbd {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font: 600 11px var(--font-sans), sans-serif;
+  color: var(--text-muted); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px;
+}
+.count { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.cards { padding: 22px 24px 32px; display: grid; gap: 22px; }
+.empty { text-align: center; color: var(--text-muted); padding: 40px 0; }
+
+@media (max-width: 820px) {
+  .head { padding: 12px 16px 14px; overflow: hidden; }
+  .headInner { gap: 10px 14px; }
+  .facts { gap: 6px; }
+  .title { font-size: 30px; }
+  .tools { padding: 16px 16px 0; }
+  .cards { padding: 14px 16px 24px; gap: 16px; }
+}

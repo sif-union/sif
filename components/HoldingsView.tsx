@@ -5,6 +5,7 @@ import type { Period } from "@/lib/performance";
 import type { Group, SiteData } from "@/lib/site-data";
 import { share } from "@/lib/format";
 import { reduceMotion } from "./dom";
+import SectorPanel from "./SectorPanel";
 import StockMap from "./StockMap";
 import styles from "./HoldingsView.module.css";
 
@@ -79,6 +80,11 @@ export default function HoldingsView({ data, period, active }: Props) {
       <div ref={mapArea}>
         {mode === "stocks" && <StockMap data={data} period={period} zoom={zoom} onZoom={zoomTo} onOpen={open} />}
       </div>
+
+      {opened && (
+        <SectorPanel data={data} group={opened.group} period={period} focusTicker={opened.ticker} from={opened.from}
+          active={active} onClose={() => setOpened(null)} />
+      )}
     </>
   );
 }

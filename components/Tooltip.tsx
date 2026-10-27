@@ -50,5 +50,5 @@ export function TipRow({ label, value }: { label: ReactNode; value: ReactNode })
 // The small "?" next to a label that explains it.
 export function Help({ text }: { text: string }) {
   const tip = useTip();
-  return <span className={styles.help} tabIndex={0} {...tip(text)}>?</span>;
+  return <span className={styles.help} tabIndex={0} data-help {...tip(text)}>?</span>;
 }
