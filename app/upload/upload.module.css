@@ -1,0 +1,15 @@
+.page { max-width: 640px; margin: 0 auto; padding: 40px 16px; display: grid; gap: 16px; }
+.page h1 { margin: 0; font: 400 36px/1.1 var(--font-serif), Georgia, serif; }
+.page p { margin: 0; color: var(--text-secondary); }
+.field { display: grid; gap: 6px; font-weight: 600; font-size: 13px; }
+.field input { font: inherit; font-weight: 400; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-1); color: var(--text-primary); }
+.undo { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--text-secondary); }
+.undo button {
+  border: 1px solid var(--ctl-border); background: var(--ctl-track); border-radius: 999px; padding: 5px 12px; cursor: pointer; font-size: 13px; font-weight: 600;
+}
+.undo button:disabled, .field input:disabled { opacity: .5; cursor: default; }
+.done { color: var(--good) !important; font-weight: 600; }
+.problems, .warnings { border-radius: 12px; padding: 12px 16px; font-size: 13px; }
+.problems { background: color-mix(in srgb, var(--bad) 12%, transparent); }
+.warnings { background: var(--surface-2); }
+.problems ul, .warnings ul { margin: 6px 0 0; padding-left: 18px; }

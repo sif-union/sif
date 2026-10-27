@@ -35,6 +35,7 @@ export default function Header({ data, period, onPeriod, view, onView }: Props) 
         </div>
         <Stats data={data} period={period} />
       </div>
+      <UploadCorner />
     </header>
   );
 }
@@ -61,6 +62,17 @@ function PeriodBar({ data, period, onPeriod }: Pick<Props, "data" | "period" | "
       </div>
     </div>
   );
+}
+
+// An invisible spot in the top-right corner: 6 clicks within 3 seconds open the upload page.
+function UploadCorner() {
+  const clicks = useRef<number[]>([]);
+  const onClick = () => {
+    const now = Date.now();
+    clicks.current = [...clicks.current.filter((t) => now - t < 3000), now];
+    if (clicks.current.length >= 6) location.href = "/upload";
+  };
+  return <button className={styles.corner} tabIndex={-1} aria-hidden="true" onClick={onClick} />;
 }
 
 function updateFades(el: HTMLElement) {

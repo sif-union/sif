@@ -10,6 +10,8 @@
 .eyebrow { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--garnet); font-weight: 600; }
 
 .periodList { display: flex; gap: 2px; }
+/* hidden upload button: a thin strip above the period bar, taller on phones where the title row has nothing on the right */
+.corner { position: absolute; top: 0; right: 0; width: 44px; height: 14px; border: 0; padding: 0; background: transparent; }
 
 .stats { display: flex; column-gap: 22px; row-gap: 4px; flex-wrap: wrap; align-items: baseline; color: var(--text-secondary); font-size: 13px; }
 .stats b { color: var(--text-primary); font-weight: 600; font-size: 15px; }
@@ -33,4 +35,5 @@
   .periodList::-webkit-scrollbar { display: none; }
   .periodList button { flex: none; }
   .stats { column-gap: 16px; }
+  .corner { height: 44px; }
 }
