@@ -1,5 +1,5 @@
 // Sticky header: title, tabs, period bar and the fund's headline numbers for the chosen period.
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { annualize, PERIODS, type Period } from "@/lib/performance";
 import { fullDate, money, monthYear, pct, pts, tone } from "@/lib/format";
 import type { SiteData } from "@/lib/site-data";
@@ -10,8 +10,17 @@ export type View = "holdings" | "contribution";
 type Props = { data: SiteData; period: Period; onPeriod: (p: Period) => void; view: View; onView: (v: View) => void };
 
 export default function Header({ data, period, onPeriod, view, onView }: Props) {
+  // The map and the sector page size themselves to the space under the header (--hdr-h).
+  const header = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    const el = header.current!;
+    const observer = new ResizeObserver(() => document.documentElement.style.setProperty("--hdr-h", el.offsetHeight + "px"));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <header className={styles.header}>
+    <header className={styles.header} ref={header}>
       <div className={styles.inner}>
         <div className={styles.top}>
           <div className={styles.brand}>

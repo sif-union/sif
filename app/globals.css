@@ -3,6 +3,7 @@
   color-scheme: light;
   --bg: #f6f5f2; --surface-1: #fcfcfb; --surface-2: #eeede9; --border: #e2e0da;
   --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7974;
+  --ink: #0b0b0b; /* text on colored blocks; strong colors use white */
   --series-1: #2a78d6; --bench: #8a8984;
   --div-neg: #e34948; --div-mid: #e4e2dc; --div-pos: #2a78d6;
   --good: #0ca30c; --bad: #d03b3b;
@@ -18,6 +19,7 @@
     color-scheme: dark;
     --bg: #121211; --surface-1: #1a1a19; --surface-2: #232321; --border: #2e2e2b;
     --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+    --ink: #f0efec;
     --series-1: #3987e5; --bench: #8f8e86;
     --div-neg: #e66767; --div-mid: #383835; --div-pos: #3987e5;
     --garnet: #d4707c;

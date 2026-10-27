@@ -1,0 +1,72 @@
+/* Shared by the stock map and the sector map. */
+.map { position: relative; width: 100%; height: max(520px, calc(100vh - var(--hdr-h, 112px) - 120px)); }
+
+.block {
+  position: absolute; border-radius: 12px; overflow: hidden; cursor: pointer; padding: 12px 14px; border: 0;
+  display: flex; flex-direction: column; gap: 2px; text-align: left; color: var(--ink);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.block[data-strong] { color: #fff; }
+.block:hover, .block:focus-visible { transform: translateY(-2px); box-shadow: var(--shadow); z-index: 2; filter: saturate(1.08); outline: none; }
+.block:focus-visible { box-shadow: 0 0 0 2px var(--surface-1), 0 0 0 4px var(--series-1); }
+.block[data-hatched] {
+  background-color: var(--surface-2);
+  background-image: repeating-linear-gradient(45deg, var(--hatch) 0 2px, transparent 2px 9px);
+  color: var(--text-primary);
+}
+
+/* stock blocks */
+.stock { border-radius: 8px; padding: 8px 10px; align-items: center; justify-content: center; text-align: center; gap: 0; }
+.tk { font-weight: 700; font-size: 18px; letter-spacing: -.01em; line-height: 1.1; }
+.tv { font-size: 14px; font-weight: 600; margin-top: 2px; }
+.tm { font-size: 11px; opacity: .8; margin-top: 2px; }
+.stock[data-size="big"] .tk { font-size: 30px; }
+.stock[data-size="big"] .tv { font-size: 18px; }
+.stock[data-size="s"] .tk { font-size: 14px; }
+.stock[data-size="s"] .tv { font-size: 12px; }
+.stock[data-size="s"] .tm { display: none; }
+.stock[data-size="xs"] { padding: 2px; border-radius: 4px; }
+.stock[data-size="xs"] .tk { font-size: 11px; }
+.stock[data-size="xs"] .tv, .stock[data-size="xs"] .tm { display: none; }
+.stock[data-size="xxs"] { padding: 0; border-radius: 4px; }
+.stock[data-size="xxs"] > * { display: none; }
+
+/* sector frames on the stock map */
+.frame { position: absolute; border-radius: 12px; background: var(--surface-1); border: 1px solid var(--border); pointer-events: none; }
+.frameLabel {
+  position: absolute; left: 10px; right: 8px; top: 4px; height: 18px; line-height: 18px; padding: 0; margin: 0;
+  pointer-events: auto; border: 0; background: transparent; border-radius: 4px; cursor: pointer; text-align: left;
+  font-size: 12px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.frameLabel span { color: var(--text-muted); font-weight: 500; }
+.frameLabel i { font-style: normal; margin-left: 4px; color: var(--text-muted); }
+.frameLabel:hover, .frameLabel:focus-visible { color: var(--text-primary); outline: none; }
+.frameLabel:hover i, .frameLabel:focus-visible i { color: var(--series-1); }
+.frameLabel:focus-visible { box-shadow: 0 0 0 2px var(--series-1); }
+
+/* sector blocks */
+.bname { font-weight: 600; font-size: 14px; line-height: 1.2; }
+.bweight { font: 400 34px/1 var(--font-serif), Georgia, serif; margin-top: 4px; }
+.bmeta { font-size: 12px; opacity: .85; }
+.btick { margin-top: auto; font-size: 11px; letter-spacing: .04em; opacity: .75; font-weight: 600; }
+.block[data-size="s"] .bweight { font-size: 24px; }
+.block[data-size="s"] .btick, .block[data-size="s"] .bcontrib { display: none; }
+.block[data-size="xs"] { padding: 8px 9px; }
+.block[data-size="xs"] .bweight { font-size: 18px; margin: 0; }
+.block[data-size="xs"] .bmeta, .block[data-size="xs"] .btick { display: none; }
+.block[data-size="xxs"] .bweight, .block[data-size="xxs"] .bmeta, .block[data-size="xxs"] .btick { display: none; }
+.block[data-size="xxs"] .bname { font-size: 11px; }
+
+.tipNote { margin-top: 4px; color: var(--text-muted); }
+
+/* legends */
+.legend { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; margin-top: 14px; font-size: 12px; color: var(--text-secondary); }
+.ramp { display: grid; grid-template-columns: auto 180px auto; gap: 8px; align-items: center; }
+.rampBar { height: 10px; border-radius: 5px; }
+.rampTicks { grid-column: 2; display: flex; justify-content: space-between; color: var(--text-muted); font-size: 11px; margin-top: -4px; }
+.swatch {
+  width: 22px; height: 14px; border-radius: 4px; display: inline-block; vertical-align: middle; margin-right: 6px; border: 1px solid var(--border);
+  background: var(--surface-2) repeating-linear-gradient(45deg, var(--hatch) 0 2px, transparent 2px 7px);
+}
+.flat { background: var(--div-mid); }
+.muted { color: var(--text-muted); }

@@ -16,6 +16,8 @@ const SECTOR_OF_SUB_INDUSTRY = new Map(
   Object.entries(gicsSectors).flatMap(([sector, subIndustries]) => subIndustries.map((sub) => [sub, sector])),
 );
 const NONE = "---"; // what Vanguard writes for a missing ticker or sub-industry
+// VTI holds both Alphabet share classes; the fund holds one, so we compare against the whole company.
+const SAME_COMPANY: Record<string, string> = { GOOGL: "GOOG" };
 
 export function readVtiHoldings(text: string): VtiWeights {
   const lines = text.replace(/^﻿/, "").split(/\r?\n/);
@@ -33,7 +35,7 @@ export function readVtiHoldings(text: string): VtiWeights {
   for (let i = headerAt + 1; lines[i]?.startsWith(","); i++) {
     const cells = splitCsvLine(lines[i]);
     // Weights come from exact market values; the "% OF FUNDS" column is rounded and shows "<0.01%".
-    stocks.push({ ticker: cells[tickerCol], subIndustry: cells[subIndustryCol], value: Number(cells[valueCol].replace(/[$,]/g, "")) });
+    stocks.push({ ticker: SAME_COMPANY[cells[tickerCol]] ?? cells[tickerCol], subIndustry: cells[subIndustryCol], value: Number(cells[valueCol].replace(/[$,]/g, "")) });
   }
   const total = stocks.reduce((sum, s) => sum + s.value, 0);
 
