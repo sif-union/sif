@@ -42,12 +42,23 @@ export default function UploadPage() {
         File
         <input type="file" accept=".csv,text/csv" disabled={busy || !password}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) send({ file: f }); e.target.value = ""; }} />
+        <span className={styles.hint}>Uploads as soon as you pick it. Which file it is gets detected automatically.</span>
       </label>
 
       <div className={styles.undo}>
-        Undo the last upload of:
-        <button disabled={busy || !password} onClick={() => send({ undo: "holdings" })}>holdings CSV</button>
-        <button disabled={busy || !password} onClick={() => send({ undo: "vti" })}>VTI file</button>
+        <b>Undo an upload</b>
+        <span>Puts back the version from before the last upload, removing what was uploaded.</span>
+        <div>
+          {(["holdings", "vti"] as const).map((kind) => {
+            const name = kind === "holdings" ? "holdings CSV" : "VTI file";
+            return (
+              <button key={kind} disabled={busy || !password}
+                onClick={() => confirm(`Remove the last uploaded ${name} and put back the one before it?`) && send({ undo: kind })}>
+                Undo last {name} upload
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {busy && <p>Working…</p>}
