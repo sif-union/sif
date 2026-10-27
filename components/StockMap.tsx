@@ -123,4 +123,4 @@ export default function StockMap({ data, period, zoom, onZoom, onOpen }: Props) 
   );
 }
 
-export const box = (n: Rect) => ({ left: n.x0, top: n.y0, width: n.x1 - n.x0, height: n.y1 - n.y0 });
+export const box = (n: { x0: number; y0: number; x1: number; y1: number }) => ({ left: n.x0, top: n.y0, width: n.x1 - n.x0, height: n.y1 - n.y0 });
