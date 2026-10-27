@@ -1,0 +1,52 @@
+/* Colors follow the device's light/dark setting. */
+:root {
+  color-scheme: light;
+  --bg: #f6f5f2; --surface-1: #fcfcfb; --surface-2: #eeede9; --border: #e2e0da;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7974;
+  --series-1: #2a78d6; --bench: #8a8984;
+  --div-neg: #e34948; --div-mid: #e4e2dc; --div-pos: #2a78d6;
+  --good: #0ca30c; --bad: #d03b3b;
+  --hatch: rgba(0,0,0,.07);
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06);
+  /* controls: a recessed track, and a raised, lighter "on" state in both themes */
+  --ctl-track: #e8e7e2; --ctl-border: #d6d4cc; --ctl-on: #ffffff; --ctl-on-border: #cfccc3;
+  --ctl-hover: rgba(0,0,0,.06); --ctl-on-shadow: 0 1px 2px rgba(0,0,0,.10), 0 1px 1px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #121211; --surface-1: #1a1a19; --surface-2: #232321; --border: #2e2e2b;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+    --series-1: #3987e5; --bench: #8f8e86;
+    --div-neg: #e66767; --div-mid: #383835; --div-pos: #3987e5;
+    --hatch: rgba(255,255,255,.06);
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    --ctl-track: #1c1c1a; --ctl-border: #34342f; --ctl-on: #3a3a35; --ctl-on-border: #4a4a44;
+    --ctl-hover: rgba(255,255,255,.06); --ctl-on-shadow: 0 1px 2px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text-primary);
+  font: 14px/1.45 var(--font-sans), system-ui, sans-serif; font-feature-settings: "tnum" 1, "cv11" 1;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+a { color: var(--series-1); }
+.pos { color: var(--good); }
+.neg { color: var(--bad); }
+.page { max-width: 1400px; margin: 0 auto; padding: 18px 24px 40px; }
+@media (max-width: 820px) { .page { padding: 14px 16px 32px; } }
+
+/* Segmented control: tabs, period bar, map mode */
+.seg { display: inline-flex; background: var(--ctl-track); border: 1px solid var(--ctl-border); border-radius: 11px; padding: 3px; gap: 2px; }
+.seg button {
+  border: 1px solid transparent; background: transparent; padding: 5px 11px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; transition: background .12s, color .12s;
+}
+.seg button:hover { background: var(--ctl-hover); color: var(--text-primary); }
+.seg button[aria-pressed="true"] { background: var(--ctl-on); border-color: var(--ctl-on-border); color: var(--text-primary); font-weight: 600; box-shadow: var(--ctl-on-shadow); }
+.seg button:focus-visible { outline: 2px solid var(--series-1); outline-offset: 1px; }
+@media (max-width: 820px) { .seg button { padding: 6px 8px; } }

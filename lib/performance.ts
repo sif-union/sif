@@ -8,7 +8,8 @@ export type Fund = {
   positions: Map<string, Map<string, HoldingRow>>; // ticker -> month -> row
 };
 
-export type Period = "1M" | "3M" | "6M" | "YTD" | "1Y" | "3Y" | "5Y" | "Max";
+export const PERIODS = ["1M", "3M", "6M", "YTD", "1Y", "3Y", "5Y", "Max"] as const;
+export type Period = (typeof PERIODS)[number];
 
 // Reorganizes the CSV rows of one fund ("equity" or "fixed income") so the math below can look
 // things up directly instead of searching all ~3,300 rows every time. One pass over the rows fills:
