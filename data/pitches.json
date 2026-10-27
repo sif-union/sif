@@ -1,0 +1,42 @@
+{
+  "CCJ": {
+    "summary": "World's largest publicly traded uranium company. A long-term play on the nuclear energy comeback, made more valuable by owning Westinghouse, which adds higher-margin fuel services.",
+    "deck": "https://muse.union.edu/sif/2025/07/11/cameco-investing-in-the-future-of-energy/"
+  },
+  "V": {
+    "summary": "A durable compounder bought at an attractive entry point: the shift from cash to digital payments, operating margins above 60%, fast-growing cross-border volume and strong network effects.",
+    "deck": "https://muse.union.edu/sif/2026/04/08/visa-durable-growth-at-a-more-attractive-entry/"
+  },
+  "AAPL": { "placeholder": true, "summary": "A loyal installed base keeps buying devices and a growing, high-margin services business." },
+  "AEP": { "placeholder": true, "summary": "A regulated utility whose grid spending rises with data-center power demand." },
+  "AMZN": { "placeholder": true, "summary": "AWS and advertising carry most of the profit while retail scale keeps getting cheaper to run." },
+  "BAC": { "placeholder": true, "summary": "A huge low-cost deposit base that earns more when interest rates are higher." },
+  "BIP": { "placeholder": true, "summary": "Owns toll roads, pipelines, data centers and ports with inflation-linked contracts." },
+  "BYDDY": { "placeholder": true, "summary": "China's largest EV maker, vertically integrated down to its own batteries." },
+  "CAT": { "placeholder": true, "summary": "Construction, mining and power-generation equipment demand rides infrastructure and data-center spending." },
+  "FDX": { "placeholder": true, "summary": "Cost cuts and network consolidation should lift margins in parcel delivery." },
+  "FDXF": { "placeholder": true, "summary": "Received in the FedEx Freight spin-off; the leading US less-than-truckload carrier." },
+  "GOOG": { "placeholder": true, "summary": "Search and YouTube fund heavy investment in Google Cloud and AI, with a strong balance sheet behind it." },
+  "JPM": { "placeholder": true, "summary": "The best-run large US bank, earning across lending, investment banking and trading." },
+  "LLY": { "placeholder": true, "summary": "GLP-1 obesity and diabetes drugs give Lilly one of the fastest-growing pipelines in pharma." },
+  "LMT": { "placeholder": true, "summary": "Long-term defense contracts like the F-35 give steady, government-backed revenue." },
+  "MC": { "placeholder": true, "summary": "An advisory boutique that benefits when mergers and restructuring activity recover." },
+  "NEE": { "placeholder": true, "summary": "The largest US renewable energy developer, plus a regulated Florida utility for stability." },
+  "NFLX": { "placeholder": true, "summary": "The largest global streaming subscriber base, now adding ads and price increases on top." },
+  "PLD": { "placeholder": true, "summary": "The largest owner of logistics warehouses, which e-commerce needs close to cities." },
+  "RACE": { "placeholder": true, "summary": "A luxury brand that happens to sell cars, with pricing power and long waitlists." },
+  "SMMNY": { "placeholder": true, "summary": "Imaging and diagnostics equipment with a large recurring service base." },
+  "SPOT": { "placeholder": true, "summary": "The default music app for hundreds of millions of users, with margins finally expanding." },
+  "TXN": { "placeholder": true, "summary": "Analog chips sit in nearly every car and factory, and new US fabs should lower costs." },
+  "WMT": { "placeholder": true, "summary": "Scale and low prices win share in any economy, and e-commerce and ads are growing." },
+  "IAUM": { "placeholder": true, "summary": "A hedge against inflation, geopolitical risk and market volatility." },
+  "ITA": { "placeholder": true, "summary": "US aerospace and defense manufacturers as defense budgets rise." },
+  "PAVE": { "placeholder": true, "summary": "US companies building roads, grids and other infrastructure." },
+  "VB": { "placeholder": true, "summary": "Adds small-cap US stocks, which large-cap picks underweight." },
+  "VIG": { "placeholder": true, "summary": "Companies with long records of raising dividends, for steadier quality exposure." },
+  "VTI": { "placeholder": true, "summary": "Holding the benchmark itself keeps part of the fund at market exposure." },
+  "XLK": { "placeholder": true, "summary": "Low-cost exposure to large US tech, partly filling the IT underweight." },
+  "XLV": { "placeholder": true, "summary": "Broad health-care exposure without single-drug risk." },
+  "XSD": { "placeholder": true, "summary": "An equal-weight basket of US semiconductor companies." },
+  "SGOV": { "placeholder": true, "summary": "Short-term Treasury bills, used as interest-earning cash." }
+}

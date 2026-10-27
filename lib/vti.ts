@@ -8,6 +8,7 @@ export type VtiWeights = {
   asOf: string; // YYYY-MM-DD
   stock: Record<string, number>; // ticker -> % of VTI
   sector: Record<string, number>; // GICS sector -> % of VTI
+  stockSector: Record<string, string>; // ticker -> GICS sector
   unknownSubIndustries: string[]; // missing from data/gics-sectors.json; add them there
 };
 
@@ -38,15 +39,17 @@ export function readVtiHoldings(text: string): VtiWeights {
 
   const stock: Record<string, number> = {};
   const sector: Record<string, number> = {};
+  const stockSector: Record<string, string> = {};
   const unknown = new Set<string>();
   for (const s of stocks) {
     const weight = (s.value / total) * 100;
-    if (s.ticker !== NONE) stock[s.ticker] = (stock[s.ticker] ?? 0) + weight;
     const gicsSector = SECTOR_OF_SUB_INDUSTRY.get(s.subIndustry);
+    if (s.ticker !== NONE) stock[s.ticker] = (stock[s.ticker] ?? 0) + weight;
+    if (s.ticker !== NONE && gicsSector) stockSector[s.ticker] = gicsSector;
     if (gicsSector) sector[gicsSector] = (sector[gicsSector] ?? 0) + weight;
     else if (s.subIndustry !== NONE) unknown.add(s.subIndustry);
   }
 
   const [, month, day, year] = date;
-  return { asOf: `${year}-${month}-${day}`, stock, sector, unknownSubIndustries: [...unknown] };
+  return { asOf: `${year}-${month}-${day}`, stock, sector, stockSector, unknownSubIndustries: [...unknown] };
 }
