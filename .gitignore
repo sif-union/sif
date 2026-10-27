@@ -1,0 +1,8 @@
+node_modules
+.next
+next-env.d.ts
+*.tsbuildinfo
+.env*
+.DS_Store
+# reference material, not part of the site
+SIF-ANNUAL-REPORT-2026.pdf

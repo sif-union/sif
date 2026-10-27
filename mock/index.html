@@ -1,0 +1,1107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIF Holdings Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="data.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f6f5f2;
+  --surface-1: #fcfcfb;
+  --surface-2: #eeede9;
+  --border: #e2e0da;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #7a7974;
+  --series-1: #2a78d6;
+  --bench: #8a8984;
+  --div-neg: #e34948;
+  --div-mid: #e4e2dc;
+  --div-pos: #2a78d6;
+  --good: #0ca30c;
+  --bad: #d03b3b;
+  --hatch: rgba(0,0,0,.07);
+  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06);
+  --hdr-h: 112px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121211;
+    --surface-1: #1a1a19;
+    --surface-2: #232321;
+    --border: #2e2e2b;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8f8e86;
+    --series-1: #3987e5;
+    --bench: #8f8e86;
+    --div-neg: #e66767;
+    --div-mid: #383835;
+    --div-pos: #3987e5;
+    --hatch: rgba(255,255,255,.06);
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121211; --surface-1: #1a1a19; --surface-2: #232321; --border: #2e2e2b;
+  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+  --series-1: #3987e5; --bench: #8f8e86; --div-neg: #e66767; --div-mid: #383835; --div-pos: #3987e5;
+  --hatch: rgba(255,255,255,.06); --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--text-primary);
+  font: 14px/1.45 Inter, system-ui, sans-serif; font-feature-settings: "tnum" 1, "cv11" 1;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+a { color: var(--series-1); }
+
+/* ---------- header ---------- */
+header {
+  position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+}
+.hdr { max-width: 1400px; margin: 0 auto; padding: 14px 24px 12px; display: grid; gap: 10px; }
+.hdr-top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; flex-direction: column; margin-right: auto; }
+.eyebrow { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+.brand h1 { margin: 0; font: 400 28px/1.05 "Instrument Serif", Georgia, serif; letter-spacing: -.01em; }
+/* Controls: a recessed track with a hairline border, and a raised, lighter "on" state
+   (lighter than the track in both themes, so the selection reads as lifted, not pressed in). */
+:root {
+  --ctl-track: #e8e7e2; --ctl-border: #d6d4cc; --ctl-on: #ffffff; --ctl-on-border: #cfccc3;
+  --ctl-hover: rgba(0,0,0,.06); --ctl-on-shadow: 0 1px 2px rgba(0,0,0,.10), 0 1px 1px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ctl-track: #1c1c1a; --ctl-border: #34342f; --ctl-on: #3a3a35; --ctl-on-border: #4a4a44;
+    --ctl-hover: rgba(255,255,255,.06); --ctl-on-shadow: 0 1px 2px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+}
+:root[data-theme="dark"] {
+  --ctl-track: #1c1c1a; --ctl-border: #34342f; --ctl-on: #3a3a35; --ctl-on-border: #4a4a44;
+  --ctl-hover: rgba(255,255,255,.06); --ctl-on-shadow: 0 1px 2px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.seg { display: inline-flex; background: var(--ctl-track); border: 1px solid var(--ctl-border); border-radius: 11px; padding: 3px; gap: 2px; }
+.seg button {
+  border: 1px solid transparent; background: transparent; padding: 5px 11px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; transition: background .12s, color .12s;
+}
+.seg button:hover { background: var(--ctl-hover); color: var(--text-primary); }
+.seg button[aria-pressed="true"] { background: var(--ctl-on); border-color: var(--ctl-on-border); color: var(--text-primary); font-weight: 600; box-shadow: var(--ctl-on-shadow); }
+.seg button:focus-visible { outline: 2px solid var(--series-1); outline-offset: 1px; }
+.stats { display: flex; column-gap: 22px; row-gap: 4px; flex-wrap: wrap; align-items: baseline; color: var(--text-secondary); font-size: 13px; }
+.stats b { color: var(--text-primary); font-weight: 600; font-size: 15px; }
+.stats b.pos { color: var(--good); } .stats b.neg { color: var(--bad); }
+.stats .muted { color: var(--text-muted); }
+.pos { color: var(--good); } .neg { color: var(--bad); }
+
+main { max-width: 1400px; margin: 0 auto; padding: 18px 24px 40px; }
+.view[hidden] { display: none; }
+
+/* ---------- treemap ---------- */
+#map { position: relative; width: 100%; height: max(520px, calc(100vh - var(--hdr-h) - 120px)); }
+.block {
+  position: absolute; border-radius: 12px; overflow: hidden; cursor: pointer; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 2px; text-align: left; border: 0;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.block:hover, .block:focus-visible { transform: translateY(-2px); box-shadow: var(--shadow); z-index: 2; filter: saturate(1.08); outline: none; }
+.block:focus-visible { box-shadow: 0 0 0 2px var(--surface-1), 0 0 0 4px var(--series-1); }
+.block.hatched {
+  background-color: var(--surface-2) !important;
+  background-image: repeating-linear-gradient(45deg, var(--hatch) 0 2px, transparent 2px 9px);
+  color: var(--text-primary);
+}
+.bname { font-weight: 600; font-size: 14px; line-height: 1.2; }
+.bweight { font: 400 34px/1 "Instrument Serif", Georgia, serif; margin-top: 4px; }
+.bmeta { font-size: 12px; opacity: .85; }
+.btick { margin-top: auto; font-size: 11px; letter-spacing: .04em; opacity: .75; font-weight: 600; }
+.block.s .bweight { font-size: 24px; } .block.s .btick, .block.s .bcontrib { display: none; }
+.block.xs { padding: 8px 9px; } .block.xs .bweight { font-size: 18px; margin: 0; }
+.block.xs .bmeta, .block.xs .btick { display: none; }
+.block.xxs .bweight, .block.xxs .bmeta, .block.xxs .btick { display: none; } .block.xxs .bname { font-size: 11px; }
+
+.maptools { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+.maphint { font-size: 12px; color: var(--text-muted); }
+.legend[hidden] { display: none; }
+.swatch.flat { background: var(--div-mid); }
+.gframe { position: absolute; border-radius: 12px; background: var(--surface-1); border: 1px solid var(--border); pointer-events: none; }
+.glabel { position: absolute; left: 10px; right: 8px; top: 4px; font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.glabel span { color: var(--text-muted); font-weight: 500; }
+button.glabel { pointer-events: auto; border: 0; background: transparent; padding: 0; margin: 0; text-align: left; cursor: pointer;
+  font-family: inherit; height: 18px; line-height: 18px; border-radius: 4px; }
+button.glabel i { font-style: normal; margin-left: 4px; color: var(--text-muted); }
+button.glabel:hover, button.glabel:focus-visible { color: var(--text-primary); outline: none; }
+button.glabel:hover i, button.glabel:focus-visible i { color: var(--series-1); }
+button.glabel:focus-visible { box-shadow: 0 0 0 2px var(--series-1); }
+.maphint { display: inline-flex; align-items: center; gap: 10px; }
+.crumb { border: 1px solid var(--ctl-border); background: var(--ctl-track); color: var(--text-primary); font: 600 13px Inter, sans-serif;
+  padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+.crumb:hover { background: var(--ctl-on); border-color: var(--ctl-on-border); }
+.crumb:focus-visible { outline: 2px solid var(--series-1); outline-offset: 1px; }
+.seg[hidden], .crumb[hidden], .zoomhead[hidden] { display: none; }
+.crumb { height: 38px; padding: 0 16px; }
+/* zoomed: title sits right of "← All stocks"; the details line wraps onto its own full-width line below */
+.zoomhead:not([hidden]) { display: contents; }
+.zoomhead h2 { flex: 1 1 0; min-width: 0; }
+.zoomhead p { flex: 0 0 100%; margin-top: -10px !important; }
+.crumb { flex: none; }
+.maptools:has(.zoomhead:not([hidden])) .maphint { display: none; }
+.zoomhead h2 { margin: 0; font: 400 30px/1.1 "Instrument Serif", Georgia, serif; }
+.zoomhead p { margin: 2px 0 0; font-size: 13px; color: var(--text-muted); }
+.block.stock.xs, .block.stock.xxs { border-radius: 4px; }
+.block.stock { border-radius: 8px; padding: 8px 10px; align-items: center; justify-content: center; text-align: center; gap: 0; }
+.block.stock .tk { font-weight: 700; font-size: 18px; letter-spacing: -.01em; line-height: 1.1; }
+.block.stock .tv { font-size: 14px; font-weight: 600; margin-top: 2px; }
+.block.stock .tm { font-size: 11px; opacity: .8; margin-top: 2px; }
+.block.stock.big .tk { font-size: 30px; } .block.stock.big .tv { font-size: 18px; }
+.block.stock.s .tk { font-size: 14px; } .block.stock.s .tv { font-size: 12px; } .block.stock.s .tm { display: none; }
+.block.stock.xs { padding: 2px; } .block.stock.xs .tk { font-size: 11px; } .block.stock.xs .tv, .block.stock.xs .tm { display: none; }
+.block.stock.xxs { padding: 0; border-radius: 4px; }
+.block.stock.xxs .tk, .block.stock.xxs .tv, .block.stock.xxs .tm { display: none; }
+.legend { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; margin-top: 14px; font-size: 12px; color: var(--text-secondary); }
+.ramp { display: grid; grid-template-columns: auto 180px auto; gap: 8px; align-items: center; }
+.ramp-bar { height: 10px; border-radius: 5px; }
+.ramp-ticks { grid-column: 2; display: flex; justify-content: space-between; color: var(--text-muted); font-size: 11px; margin-top: -4px; }
+.swatch { width: 22px; height: 14px; border-radius: 4px; display: inline-block; vertical-align: middle; margin-right: 6px;
+  background: var(--surface-2) repeating-linear-gradient(45deg, var(--hatch) 0 2px, transparent 2px 7px); border: 1px solid var(--border); }
+.notheld { color: var(--text-muted); }
+
+/* ---------- sector overlay ---------- */
+#sector {
+  position: fixed; left: 0; right: 0; bottom: 0; top: var(--hdr-h); z-index: 20; background: var(--bg);
+  overflow-y: auto; opacity: 0; pointer-events: none;
+}
+#sector.open { opacity: 1; pointer-events: auto; }
+.sec-head { position: sticky; top: 0; z-index: 5; padding: 16px 24px 18px; }
+.sec-head-inner { max-width: 1100px; margin: 0 auto; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.back {
+  border: 0; border-radius: 999px; padding: 8px 14px 8px 10px; cursor: pointer; font-weight: 600; font-size: 13px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+.back:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.sec-title { font: 400 40px/1 "Instrument Serif", Georgia, serif; margin: 0; }
+.sec-facts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; margin-left: auto; }
+.pill { background: var(--surface-1); color: var(--text-secondary); border-radius: 999px; padding: 4px 11px; white-space: nowrap; }
+.pill b { font-weight: 600; color: var(--text-primary); }
+.pill b.pos { color: var(--good); } .pill b.neg { color: var(--bad); }
+.sec-tools { max-width: 1100px; margin: 0 auto; padding: 28px 24px 0; display: flex; align-items: center; gap: 12px; }
+.search { position: relative; flex: 1; }
+.search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+.search input {
+  width: 100%; font: inherit; font-size: 15px; color: var(--text-primary); background: var(--surface-1);
+  border: 1px solid var(--border); border-radius: 12px; padding: 12px 44px 12px 40px; outline: none;
+}
+.search input:focus { border-color: var(--series-1); box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-1) 25%, transparent); }
+.search kbd { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font: 600 11px Inter, sans-serif;
+  color: var(--text-muted); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; }
+.qcount { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.qcount:empty { display: none; } /* an empty count still took a flex gap, making the search narrower than the rows */
+.seg-list { display: flex; gap: 2px; }
+.empty { text-align: center; color: var(--text-muted); padding: 40px 0; }
+.cards { padding: 22px 24px 32px; display: grid; gap: 22px; }
+.card {
+  max-width: 1100px; width: 100%; margin: 0 auto; background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 18px; padding: 22px 24px 14px; box-shadow: var(--shadow); cursor: pointer;
+  transform-origin: center; will-change: transform, opacity; transition: border-color .2s;
+}
+.card:hover { border-color: color-mix(in srgb, var(--series-1) 45%, var(--border)); }
+.card[hidden] { display: none; }
+.card .pitch { display: grid; grid-template-columns: 1fr auto; gap: 4px 20px; align-items: start; }
+.card .pitch .panel-title, .card .pitch p { grid-column: 1; }
+.card .pitch .decklink { grid-column: 2; grid-row: 1 / 3; align-self: center; white-space: nowrap; }
+.more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .25s cubic-bezier(.2,.8,.2,1); }
+.card.expanded .more { grid-template-rows: 1fr; }
+.more > .inner { overflow: hidden; min-height: 0; }
+.more .card-body { padding-top: 14px; margin-top: 12px; border-top: 1px solid var(--border); }
+.toggle { display: flex; justify-content: center; margin-top: 10px; }
+.toggle button { border: 1px solid var(--ctl-border); background: var(--ctl-track); color: var(--text-secondary); font-size: 12px; font-weight: 600; cursor: pointer; padding: 5px 14px; border-radius: 999px; transition: background .12s, color .12s; }
+.toggle button:hover { background: var(--ctl-on); border-color: var(--ctl-on-border); color: var(--text-primary); }
+.toggle button:focus-visible { outline: 2px solid var(--series-1); }
+.toggle .chev { display: inline-block; transition: transform .25s; }
+.card.expanded .toggle .chev { transform: rotate(180deg); }
+.card-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.ticker { font-weight: 700; font-size: 26px; letter-spacing: -.01em; }
+.cname { color: var(--text-secondary); font-size: 15px; }
+.cvalue { margin-left: auto; font-weight: 600; font-size: 18px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.chip { font-size: 12px; color: var(--text-secondary); background: var(--surface-2); border-radius: 999px; padding: 3px 10px; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0; }
+.tile { background: var(--surface-2); border-radius: 12px; padding: 12px 14px; }
+.tile .k { font-size: 12px; color: var(--text-secondary); display: flex; gap: 6px; align-items: center; }
+.tile .v { font-size: 22px; font-weight: 600; margin-top: 2px; }
+.tile .sub { font-size: 12px; color: var(--text-muted); }
+.help { width: 15px; height: 15px; border-radius: 50%; border: 1px solid var(--text-muted); color: var(--text-muted);
+  font-size: 10px; display: inline-grid; place-items: center; cursor: help; font-weight: 600; }
+.wbars { display: grid; gap: 4px; margin-top: 8px; }
+.wbar { display: grid; grid-template-columns: 30px 1fr; gap: 6px; align-items: center; font-size: 11px; color: var(--text-muted); }
+.wbar i { display: block; height: 6px; border-radius: 0 3px 3px 0; min-width: 2px; }
+.card-body { display: grid; grid-template-columns: 1.25fr 1fr; gap: 22px; }
+.panel-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 8px; display: flex; gap: 8px; align-items: center; }
+.tag { font-size: 10px; letter-spacing: .04em; padding: 1px 7px; border-radius: 999px; background: var(--surface-2); color: var(--text-muted); text-transform: none; font-weight: 600; }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: 180px; overflow: visible; }
+.chart .note { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.pitch p { margin: 0 0 10px; color: var(--text-primary); }
+.decklink { font-weight: 600; font-size: 13px; text-decoration: none; }
+.decklink.off { color: var(--text-muted); pointer-events: none; }
+.news { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 8px; }
+.news li { border-top: 1px solid var(--border); padding-top: 8px; }
+.news .h { display: block; height: 10px; border-radius: 4px; background: var(--surface-2); margin: 4px 0 6px; }
+.news .h.short { width: 70%; }
+.news .src { font-size: 11px; color: var(--text-muted); }
+
+/* ---------- fly transition ---------- */
+.fly { position: fixed; z-index: 25; border-radius: 12px; pointer-events: none; }
+
+/* ---------- contribution ---------- */
+.contrib-head { display: flex; align-items: end; gap: 20px; flex-wrap: wrap; margin-bottom: 18px; }
+.contrib-head h2 { margin: 0; font: 400 34px/1.05 "Instrument Serif", Georgia, serif; }
+.contrib-head p { margin: 4px 0 0; color: var(--text-secondary); max-width: 640px; }
+.fly-legend { display: flex; gap: 16px; font-size: 12px; color: var(--text-secondary); margin-left: auto; }
+.fly-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 5px; }
+.bfly { background: var(--surface-1); border: 1px solid var(--border); border-radius: 18px; padding: 18px 20px; box-shadow: var(--shadow); }
+.brow, .bhead { display: grid; grid-template-columns: 64px 1fr 190px 1fr 64px; align-items: center; column-gap: 8px; }
+.bhead { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.bhead .l { grid-column: 1 / 3; text-align: right; } .bhead .r { grid-column: 4 / 6; }
+.brow { padding: 5px 0; border-radius: 8px; }
+.brow:hover { background: var(--surface-2); }
+.brow .lab { text-align: center; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brow .lab small { display: block; font-size: 11px; color: var(--text-muted); font-weight: 400; }
+.brow .val { font-size: 12px; font-weight: 600; }
+.brow .val.l { text-align: right; }
+.track { height: 18px; display: flex; position: relative; }
+.track.left { justify-content: flex-end; }
+.track.left::after, .track.right::before { content: ""; position: absolute; top: -5px; bottom: -5px; width: 1px; background: var(--border); }
+.track.left::after { right: 0; } .track.right::before { left: 0; }
+.bar { height: 100%; min-width: 0; }
+.track.right .bar { border-radius: 0 4px 4px 0; } .track.left .bar { border-radius: 4px 0 0 4px; }
+.brow.total { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 12px; border-radius: 0; }
+.brow.total .lab { font-weight: 700; }
+.foot { margin-top: 18px; font-size: 12px; color: var(--text-muted); max-width: 900px; }
+
+/* ---------- tooltip ---------- */
+#tip {
+  position: fixed; z-index: 50; pointer-events: none; background: var(--surface-1); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 12px; box-shadow: var(--shadow);
+  opacity: 0; transition: opacity .1s; max-width: 260px;
+}
+#tip b { font-weight: 600; }
+#tip .row { display: flex; justify-content: space-between; gap: 14px; }
+
+@media (max-width: 820px) {
+  .hdr { padding: 12px 16px 10px; } main { padding: 14px 16px 32px; }
+  .tiles { grid-template-columns: repeat(2, 1fr); }
+  .card-body { grid-template-columns: 1fr; }
+  .cards { padding: 14px 16px 24px; gap: 16px; }
+  .sec-tools { padding: 16px 16px 0; }
+  .brow, .bhead { grid-template-columns: 46px 1fr 104px 1fr 46px; column-gap: 4px; }
+  .brow .lab { font-size: 11px; white-space: normal; }
+  .sec-title { font-size: 30px; }
+  .sec-head { padding: 12px 16px 14px; }
+  .sec-head-inner { gap: 10px 14px; }
+  .sec-facts { gap: 6px; }
+  .sec-head { overflow: hidden; box-sizing: border-box; }
+  .zoomhead h2 { font-size: 26px; }
+  .seg button { padding: 6px 8px; }
+  /* title on its own line; view tabs + periods share the next line, periods scroll sideways */
+  .hdr-top { gap: 10px; }
+  .brand { flex: 1 0 100%; }
+  #tabs { flex: none; }
+  /* the bar keeps its border; only the button strip inside scrolls and fades */
+  #periods { flex: 1 1 0; min-width: 0; overflow: hidden; }
+  #period-list {
+    flex: 1 1 0; min-width: 0; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+    --fade-l: 0px; --fade-r: 0px;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+            mask-image: linear-gradient(90deg, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+  }
+  #period-list.more-l { --fade-l: 14px; } #period-list.more-r { --fade-r: 18px; }
+  #period-list::-webkit-scrollbar { display: none; }
+  #period-list button { flex: none; }
+  .stats { column-gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .block, .card { transition: none; }
+}
+</style>
+</head>
+<body>
+<header id="hdr">
+  <div class="hdr">
+    <div class="hdr-top">
+      <div class="brand">
+        <span class="eyebrow">Union College Student Investment Fund</span>
+        <h1>Equity Fund holdings</h1>
+      </div>
+      <div class="seg" id="tabs" role="tablist" aria-label="View">
+        <button data-view="map" aria-pressed="true">Holdings</button>
+        <button data-view="contrib" aria-pressed="false">Contribution</button>
+      </div>
+      <div class="seg" id="periods" aria-label="Time period"><div class="seg-list" id="period-list"></div></div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </div>
+</header>
+
+<main>
+  <section class="view" id="view-map">
+    <div class="maptools">
+      <div class="seg" id="mapmode" aria-label="Group holdings">
+        <button data-mode="stocks">By stock</button>
+        <button data-mode="sectors">By sector</button>
+      </div>
+      <button class="crumb" id="crumb" data-unzoom hidden>← All stocks</button>
+      <div class="zoomhead" id="zoomhead" hidden></div>
+      <span class="maphint" id="maphint"></span>
+    </div>
+    <div id="map" aria-label="Fund holdings sized by weight"></div>
+    <div class="legend" id="legend-sectors">
+      <div class="ramp">
+        <span>Underweight</span>
+        <div class="ramp-bar" id="rampbar"></div>
+        <span>Overweight vs VTI</span>
+        <div class="ramp-ticks"><span>−15 pts</span><span>same</span><span>+15 pts</span></div>
+      </div>
+      <span><span class="swatch"></span>ETF themes &amp; cash (no VTI weight to compare)</span>
+      <span class="notheld" id="notheld"></span>
+    </div>
+    <div class="legend" id="legend-stocks" hidden>
+      <div class="ramp">
+        <span>Trailed VTI</span>
+        <div class="ramp-bar" id="rampbar-stocks"></div>
+        <span>Beat VTI</span>
+        <div class="ramp-ticks" id="ramp-ticks-stocks"></div>
+      </div>
+      <span><span class="swatch flat"></span>Not held for the full period</span>
+      <span><span class="swatch"></span>Cash</span>
+    </div>
+  </section>
+
+  <section class="view" id="view-contrib" hidden>
+    <div class="contrib-head">
+      <div>
+        <h2>Where the return came from</h2>
+        <p id="contrib-sub"></p>
+      </div>
+      <div class="fly-legend">
+        <span><i style="background:var(--good)"></i>Added to return (+)</span>
+        <span><i style="background:var(--bad)"></i>Subtracted (−)</span>
+      </div>
+    </div>
+    <div class="bfly" id="bfly"></div>
+    <p class="foot">Contribution = how many percentage points each group added to the total return over the period. The SIF side comes from the holdings CSV and adds up to the fund's return; sold positions are grouped together. <b>The VTI side is illustrative in this mockup</b>: it uses estimated sector weights and returns, scaled to VTI's actual return for the period.</p>
+  </section>
+</main>
+
+<section id="sector" aria-hidden="true">
+  <div class="sec-head" id="sec-head"></div>
+  <div id="sec-body">
+    <div class="sec-tools">
+      <label class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" autocomplete="off" aria-label="Search holdings">
+        <kbd>/</kbd>
+      </label>
+      <span class="qcount" id="qcount"></span>
+    </div>
+    <div class="cards" id="cards"></div>
+    <p class="empty" id="empty" hidden>No holdings match your search.</p>
+  </div>
+</section>
+<div id="tip" role="tooltip"></div>
+
+<script>
+const D = window.SIF;
+const PERIODS = [["1M","1M"],["3M","3M"],["6M","6M"],["YTD","YTD"],["1Y","1Y"],["3Y","3Y"],["5Y","5Y"],["SI","Max"]];
+const MONTHS = {"1M":1,"3M":3,"6M":6,"YTD":D.periods.YTD.months,"1Y":12,"3Y":36,"5Y":60};
+// sector, scroll, expanded rows and search survive tab switches (Holdings <-> Contribution)
+const state = { period: load("sif.period", "1Y"), view: "map", mapMode: load("sif.mapMode", "stocks"),
+  zoom: null, sector: null, origin: null, secScroll: 0, expanded: new Set(), query: "" };
+const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const MORPH_MS = 230;
+
+function load(k, d) { try { return localStorage.getItem(k) || d; } catch { return d; } }
+function save(k, v) { try { localStorage.setItem(k, v); } catch {} }
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sign = v => (v > 0 ? "+" : v < 0 ? "−" : "");
+const pct = (v, d = 1) => v == null ? "—" : sign(v) + Math.abs(v).toFixed(d) + "%";
+const pts = (v, d = 1) => v == null ? "—" : sign(v) + Math.abs(v).toFixed(d) + " pts";
+const cls = v => v == null ? "" : v > 0 ? "pos" : v < 0 ? "neg" : "";
+const money = v => v >= 1e6 ? "$" + (v / 1e6).toFixed(2) + "M" : "$" + Math.round(v / 1000) + "K";
+const fmtMonth = d => new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", year: "numeric" });
+const byT = Object.fromEntries(D.holdings.map(h => [h.t, h]));
+const periodLabel = k => PERIODS.find(p => p[0] === k)[1];
+const helpIcon = t => `<span class="help" tabindex="0" data-tip="${esc(t)}">?</span>`;
+
+/* ---------- header ---------- */
+function renderPeriods() {
+  $("#period-list").innerHTML = PERIODS.map(([k, l]) =>
+    `<button data-p="${k}" aria-pressed="${k === state.period}" title="${k === "SI" ? "Fund: since Sep 2018 (start of data). Stocks: since the fund bought them." : ""}">${l}</button>`).join("");
+  centerPeriod();
+}
+// on phones the period strip scrolls sideways: keep the selected period in view,
+// and fade only the edge(s) that have more periods hidden behind them
+function centerPeriod() {
+  const list = $("#period-list"), on = list.querySelector('[aria-pressed="true"]');
+  if (on && list.scrollWidth > list.clientWidth) {
+    const lr = list.getBoundingClientRect(), or = on.getBoundingClientRect();
+    list.scrollLeft += or.left - lr.left - (list.clientWidth - or.width) / 2;
+  }
+  updatePeriodFades();
+}
+function updatePeriodFades() {
+  const list = $("#period-list"), max = list.scrollWidth - list.clientWidth;
+  list.classList.toggle("more-l", list.scrollLeft > 2);
+  list.classList.toggle("more-r", list.scrollLeft < max - 2);
+}
+$("#period-list").addEventListener("scroll", updatePeriodFades, { passive: true });
+if (document.fonts) document.fonts.ready.then(() => { centerPeriod(); renderAll(); });
+$("#periods").addEventListener("click", e => {
+  const b = e.target.closest("button[data-p]"); if (!b) return;
+  state.period = b.dataset.p; save("sif.period", state.period); renderAll();
+});
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-view]"); if (!b || b.dataset.view === state.view) return;
+  if (state.sector && state.view === "map") state.secScroll = $("#sector").scrollTop;
+  state.view = b.dataset.view;
+  document.querySelectorAll("#tabs button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("#view-map").hidden = state.view !== "map";
+  $("#view-contrib").hidden = state.view !== "contrib";
+  renderAll();
+});
+
+function renderStats() {
+  const p = D.periods[state.period], long = p.months > 12;
+  const diff = p.fund - p.vti;
+  const ann = (v) => long ? ` <span class="muted">(${pct(v)}/yr)</span>` : "";
+  $("#stats").innerHTML = `
+    <span>Fund value <b>${money(D.total)}</b></span>
+    <span>Fund return <b class="${cls(p.fund)}">${pct(p.fund)}</b>${ann(p.fundAnn)}</span>
+    <span>VTI <b class="${cls(p.vti)}">${pct(p.vti)}</b>${ann(p.vtiAnn)}</span>
+    <span>Difference <b class="${cls(diff)}">${pts(diff)}</b></span>
+    <span class="muted">${fmtMonth(p.start)} → ${fmtMonth(D.asOf)} · data as of ${new Date(D.asOf + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>`;
+}
+
+/* ---------- treemap ---------- */
+function blockFill(s) {
+  if (s.kind !== "sector") return null;
+  const t = Math.max(-1, Math.min(1, (s.w - s.vtiW) / 15));
+  return d3.interpolateLab(css("--div-mid"), css(t >= 0 ? "--div-pos" : "--div-neg"))(Math.abs(t));
+}
+const inkOn = c => d3.lab(c).l > 62 ? "#0b0b0b" : "#ffffff";
+const contribFor = name => (D.periods[state.period].contribution.find(c => c.name === name) || {}).fund;
+
+$("#mapmode").addEventListener("click", e => {
+  const b = e.target.closest("button[data-mode]"); if (!b || b.dataset.mode === state.mapMode) return;
+  state.mapMode = b.dataset.mode; state.zoom = null; save("sif.mapMode", state.mapMode); renderMap();
+});
+
+function renderMap() {
+  document.querySelectorAll("#mapmode button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === state.mapMode));
+  const stocks = state.mapMode === "stocks";
+  if (!stocks) state.zoom = null;
+  $("#legend-sectors").hidden = stocks; $("#legend-stocks").hidden = !stocks;
+  // Zoomed: the back button takes the switch's place, the sector title goes on its own line below.
+  const zoomed = stocks && !!state.zoom;
+  $("#mapmode").hidden = zoomed;
+  $("#crumb").hidden = !zoomed;
+  $("#zoomhead").hidden = !zoomed;
+  if (zoomed) {
+    const s = D.sectors.find(x => x.name === state.zoom);
+    $("#zoomhead").innerHTML = s ? `<h2>${esc(s.name)}</h2><p>${s.w.toFixed(1)}% of fund · ${s.holdings.length} holding${s.holdings.length > 1 ? "s" : ""} · tap a stock for details</p>` : "";
+  }
+  $("#maphint").textContent = zoomed ? ""
+    : stocks ? `Size = share of the fund · color = return vs VTI, ${periodLabel(state.period)} · tap a sector name to zoom in`
+    : "Size = share of the fund · color = over / underweight vs VTI";
+  stocks ? renderStockMap() : renderSectorMap();
+}
+
+// Zoom the stock map into one sector (its label was tapped, or a stock too small to read was tapped).
+function zoomTo(name) {
+  hideTip(); state.zoomFromScroll = window.scrollY; state.zoom = name; renderMap();
+  window.scrollTo(0, 0); // a zoomed sector always opens at the top
+  if (!reduceMotion()) $("#map").animate([{ opacity: 0, transform: "scale(.97)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: "ease-out" });
+}
+function unzoom() {
+  const from = state.zoom; hideTip(); state.zoom = null; renderMap();
+  window.scrollTo(0, state.zoomFromScroll || 0); // back to where you were on the full map
+  if (!reduceMotion()) $("#map").animate([{ opacity: 0, transform: "scale(1.03)" }, { opacity: 1, transform: "none" }], { duration: 180, easing: "ease-out" });
+  const lbl = document.querySelector(`#map .glabel[data-zoom="${CSS.escape(from || "")}"]`);
+  if (lbl) lbl.focus({ preventScroll: true });
+}
+$("#view-map").addEventListener("click", e => {
+  const z = e.target.closest("[data-zoom]"); if (z && !state.zoom) return zoomTo(z.dataset.zoom);
+  if (e.target.closest("[data-unzoom]")) unzoom();
+});
+
+/* ---------- stock map: stocks grouped by sector, colored by return vs VTI ---------- */
+// Color range (pts vs VTI) per period. Multi-year periods are per-year numbers, so they get a tighter range.
+const REL_RANGE = { "1M": 10, "3M": 15, "6M": 20, "YTD": 25, "1Y": 30, "3Y": 15, "5Y": 15, "SI": 15 };
+function relVsVti(h) {
+  const r = h.ret[state.period], v = h.vtiRet[state.period];
+  return r == null ? null : (r - v) * 100;
+}
+function stockFill(h) {
+  if (h.kind === "cash") return null;
+  const rel = relVsVti(h);
+  if (rel == null) return css("--div-mid");
+  const t = Math.max(-1, Math.min(1, rel / REL_RANGE[state.period]));
+  return d3.interpolateLab(css("--div-mid"), css(t >= 0 ? "--good" : "--bad"))(Math.abs(t) * 0.85 + (t ? 0.15 : 0));
+}
+
+const LABEL_H = 22;
+// A frame only gets a label (and its padding) when there is room left for stocks under it.
+const labelFits = n => (n.y1 - n.y0) >= LABEL_H + 22 && (n.x1 - n.x0) >= 44;
+const framePad = n => (n.y1 - n.y0) >= 16 && (n.x1 - n.x0) >= 16 ? 3 : 0;
+
+function renderStockMap() {
+  const el = $("#map"), W = el.clientWidth, H = el.clientHeight;
+  let held = D.sectors.filter(s => s.value > 0);
+  if (state.zoom && !held.some(s => s.name === state.zoom)) state.zoom = null;
+  if (state.zoom) held = held.filter(s => s.name === state.zoom);
+  const groups = held.map(s => ({ s, children: s.holdings.map(t => ({ h: byT[t] })) }));
+  const root = d3.hierarchy({ children: groups }).sum(d => d.h ? d.h.value : 0).sort((a, b) => b.value - a.value);
+  // zoomed: the sector title sits above the map, so the frame itself has no label
+  const hasLabel = n => !state.zoom && labelFits(n);
+  const padTop = n => hasLabel(n) ? LABEL_H : framePad(n);
+  d3.treemap().size([W, H]).round(true).tile(d3.treemapSquarify.ratio(1.15))
+    .paddingInner(n => n.depth === 0 ? 6 : 3)
+    .paddingTop(n => n.depth === 1 ? padTop(n) : 0)
+    .paddingLeft(n => n.depth === 1 ? framePad(n) : 0).paddingRight(n => n.depth === 1 ? framePad(n) : 0)
+    .paddingBottom(n => n.depth === 1 ? framePad(n) : 0)(root);
+  el.innerHTML = "";
+  for (const g of root.children) {
+    const s = g.data.s, f = document.createElement("div");
+    f.className = "gframe";
+    Object.assign(f.style, { left: g.x0 + "px", top: g.y0 + "px", width: (g.x1 - g.x0) + "px", height: (g.y1 - g.y0) + "px" });
+    if (hasLabel(g)) f.innerHTML = `<button class="glabel" data-zoom="${esc(s.name)}" aria-label="Zoom into ${esc(s.name)}">${esc(s.name)} <span>${s.w.toFixed(1)}%</span><i aria-hidden="true">›</i></button>`;
+    f.dataset.name = s.name;
+    el.appendChild(f);
+  }
+  const range = REL_RANGE[state.period];
+  for (const n of root.leaves()) {
+    const h = n.data.h, p = n.parent, s = p.data.s;
+    // Keep every block inside its frame's padding (d3 can push tiny children past it),
+    // and skip slivers too thin to see; they show up when the sector is zoomed.
+    const pad = framePad(p), px0 = p.x0 + pad, px1 = p.x1 - pad, py0 = p.y0 + padTop(p), py1 = p.y1 - pad;
+    const x0 = Math.max(n.x0, px0), y0 = Math.max(n.y0, py0), x1 = Math.min(n.x1, px1), y1 = Math.min(n.y1, py1);
+    const w = x1 - x0, ht = y1 - y0;
+    if (w < 6 || ht < 6) continue;
+    const fill = stockFill(h), rel = relVsVti(h);
+    const b = document.createElement("button");
+    const size = w < 26 || ht < 18 ? "xxs" : w < 56 || ht < 40 ? "xs" : w < 110 || ht < 70 ? "s" : w > 220 && ht > 150 ? "big" : "";
+    // too small to read or tap comfortably: tapping zooms into the sector instead
+    const tiny = !state.zoom && (size === "xxs" || w < 40 || ht < 30);
+    b.className = `block stock ${fill ? "" : "hatched "}${size}`;
+    Object.assign(b.style, { left: x0 + "px", top: y0 + "px", width: w + "px", height: ht + "px" });
+    if (fill) { b.style.background = fill; b.style.color = inkOn(fill); }
+    const relTxt = h.kind === "cash" ? "cash" : rel == null ? "held < " + periodLabel(state.period) : pts(rel);
+    b.innerHTML = `<span class="tk">${esc(h.t)}</span><span class="tv">${relTxt}</span><span class="tm">${h.w.toFixed(1)}% of fund</span>`;
+    b.dataset.t = h.t;
+    b.setAttribute("aria-label", `${h.t}, ${h.w.toFixed(1)}% of fund, ${relTxt} vs VTI`);
+    const r = h.ret[state.period], per = state.period === "SI" ? "since bought" : periodLabel(state.period);
+    b.dataset.tip = `<b>${esc(h.t)}</b> · ${esc(h.name)}` +
+      `<div class="row"><span>Share of fund</span><b>${h.w.toFixed(1)}%</b></div>` +
+      (h.kind === "cash" ? "" : r == null
+        ? `<div style="color:var(--text-muted)">Held since ${fmtMonth(h.since)}, less than ${periodLabel(state.period)}</div>`
+        : `<div class="row"><span>Return (${per})</span><b>${pct(r * 100)}</b></div><div class="row"><span>VTI, same months</span><b>${pct(h.vtiRet[state.period] * 100)}</b></div><div class="row"><span>vs VTI</span><b>${pts(rel)}</b></div>`) +
+      `<div style="margin-top:4px;color:var(--text-muted)">${esc(s.name)} · ${tiny ? "click to zoom into the sector" : "click for details"}</div>`;
+    b.addEventListener("click", () => tiny ? zoomTo(s.name) : openSector(s, b, h.t));
+    el.appendChild(b);
+  }
+  $("#rampbar-stocks").style.background = `linear-gradient(90deg, ${css("--bad")}, ${css("--div-mid")}, ${css("--good")})`;
+  $("#ramp-ticks-stocks").innerHTML = `<span>−${range} pts</span><span>same</span><span>+${range} pts</span>`;
+}
+
+function renderSectorMap() {
+  const el = $("#map"), W = el.clientWidth, H = el.clientHeight;
+  const held = D.sectors.filter(s => s.value > 0);
+  const root = d3.hierarchy({ children: held }).sum(d => d.value || 0).sort((a, b) => b.value - a.value);
+  d3.treemap().size([W, H]).paddingInner(5).round(true).tile(d3.treemapSquarify.ratio(1.15))(root);
+  el.innerHTML = "";
+  for (const n of root.leaves()) {
+    const s = n.data, w = n.x1 - n.x0, h = n.y1 - n.y0;
+    const fill = blockFill(s);
+    const b = document.createElement("button");
+    b.className = "block " + (fill ? "" : "hatched ") +
+      (w < 70 || h < 46 ? "xxs" : w < 120 || h < 90 ? "xs" : w < 190 || h < 140 ? "s" : "");
+    Object.assign(b.style, { left: n.x0 + "px", top: n.y0 + "px", width: w + "px", height: h + "px" });
+    if (fill) { b.style.background = fill; b.style.color = inkOn(fill); }
+    const active = s.vtiW != null ? s.w - s.vtiW : null;
+    const c = contribFor(s.name);
+    const metaTxt = active != null ? `${pts(active)} vs VTI` : s.kind === "cash" ? "Cash" : "ETF theme";
+    b.innerHTML = `
+      <span class="bname">${esc(s.name)}</span>
+      <span class="bweight">${s.w.toFixed(1)}%</span>
+      <span class="bmeta">${metaTxt}</span>
+      <span class="bmeta bcontrib">${pts(c, 2)} contribution · ${periodLabel(state.period)}</span>
+      <span class="btick">${s.holdings.join(" · ")}</span>`;
+    b.setAttribute("aria-label", `${s.name}, ${s.w.toFixed(1)}% of fund, ${metaTxt}`);
+    b.dataset.name = s.name;
+    b.dataset.tip = `<b>${esc(s.name)}</b><div class="row"><span>Share of fund</span><b>${s.w.toFixed(1)}%</b></div>` +
+      (s.vtiW != null ? `<div class="row"><span>Share of VTI</span><b>${s.vtiW.toFixed(1)}%</b></div><div class="row"><span>Over / under</span><b>${pts(active)}</b></div>` : "") +
+      `<div class="row"><span>Contribution (${periodLabel(state.period)})</span><b>${pts(c, 2)}</b></div><div style="margin-top:4px;color:var(--text-muted)">${s.holdings.join(", ")}</div>`;
+    b.addEventListener("click", () => openSector(s, b));
+    el.appendChild(b);
+  }
+  const mid = css("--div-mid");
+  $("#rampbar").style.background = `linear-gradient(90deg, ${css("--div-neg")}, ${mid}, ${css("--div-pos")})`;
+  const none = D.sectors.filter(s => s.value === 0);
+  $("#notheld").textContent = none.length ? "Not held: " + none.map(s => `${s.name} (${s.vtiW}% of VTI)`).join(", ") : "";
+}
+
+/* ---------- sector view ---------- */
+// The block morphs into the sector's colored header bar (same color, so no flash),
+// while the page background fades in behind it. Rows fade in once the bar lands.
+const rectKF = (r, radius) => ({ left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", borderRadius: radius + "px" });
+function makeFly(bg) { const f = document.createElement("div"); f.className = "fly"; f.style.background = bg; document.body.appendChild(f); return f; }
+
+// focusTicker: opened from the stock map, so that row starts expanded and centered.
+function openSector(s, blockEl, focusTicker) {
+  hideTip();
+  state.sector = s; state.origin = focusTicker || null;
+  state.expanded = new Set(focusTicker ? [focusTicker] : []); state.query = ""; state.secScroll = 0;
+  $("#q").value = "";
+  const from = blockEl.getBoundingClientRect(), bg = getComputedStyle(blockEl).backgroundColor;
+  renderSector();
+  const sec = $("#sector"), head = $("#sec-head"), body = $("#sec-body");
+  sec.scrollTop = 0;
+  showSector(true);
+  packPills();
+  measureHead();
+  // Opened from the stock map: scroll so the tapped stock's row sits just under the header.
+  // On phones that means the header is fully collapsed (button + title). The header is never
+  // left half-collapsed: if the page can't scroll far enough to collapse it, open at the top.
+  if (focusTicker) {
+    const card = document.querySelector(`.card[data-t="${focusTicker}"]`);
+    if (card) {
+      const collapse = mqPhone.matches ? headSize.full - headSize.compact : 0;
+      const headAfter = mqPhone.matches ? headSize.compact : head.offsetHeight;
+      const max = sec.scrollHeight - sec.clientHeight;
+      let s = Math.min(card.offsetTop - headAfter - 20, max);
+      if (s < collapse) s = 0;
+      sec.scrollTop = s;
+      updateHeadClip();
+    }
+  }
+  if (reduceMotion()) return afterOpen();
+  const fly = makeFly(bg);
+  head.style.visibility = "hidden"; body.style.opacity = 0;
+  sec.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MORPH_MS, easing: "ease-out" });
+  // a stock block is colored by performance, the header by positioning, so blend the color during the morph
+  fly.animate([{ ...rectKF(from, 12), background: bg }, { ...rectKF(head.getBoundingClientRect(), 0), background: getComputedStyle(head).backgroundColor }],
+    { duration: MORPH_MS, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" }).onfinish = () => {
+    head.style.visibility = ""; fly.remove(); body.style.opacity = "";
+    body.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 160, easing: "ease-out" });
+    afterOpen();
+  };
+  function afterOpen() { updateFocus(); $("#sec-head .back").focus({ preventScroll: true }); }
+}
+
+function closeSector() {
+  const sec = $("#sector"), head = $("#sec-head"), body = $("#sec-body");
+  const name = state.sector.name, origin = state.origin;
+  state.sector = null; state.origin = null; state.expanded.clear(); state.query = ""; state.secScroll = 0;
+  // go back to the stock block we came from, else the sector block / frame
+  const target = (origin && document.querySelector(`#map .block[data-t="${origin}"]`)) ||
+    [...document.querySelectorAll("#map .block, #map .gframe")].find(b => b.dataset.name === name);
+  const done = () => { showSector(false); head.style.visibility = ""; body.style.opacity = ""; if (target && target.focus) target.focus({ preventScroll: true }); };
+  if (reduceMotion() || !target) return done();
+  const headBg = getComputedStyle(head).backgroundColor;
+  const fly = makeFly(headBg);
+  const toBg = target.classList.contains("gframe") ? headBg : getComputedStyle(target).backgroundColor;
+  fly.animate([{ ...rectKF(head.getBoundingClientRect(), 0), background: headBg }, { ...rectKF(target.getBoundingClientRect(), 12), background: toBg }],
+    { duration: MORPH_MS, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }).onfinish = () => fly.remove();
+  head.style.visibility = "hidden"; body.style.opacity = 0;
+  sec.animate([{ opacity: 1 }, { opacity: 0 }], { duration: MORPH_MS, easing: "ease-in" }).onfinish = done;
+}
+
+function showSector(on) {
+  const sec = $("#sector");
+  sec.classList.toggle("open", on); sec.setAttribute("aria-hidden", String(!on));
+}
+
+addEventListener("keydown", e => {
+  if (state.view === "map" && !state.sector && state.zoom && e.key === "Escape") { e.preventDefault(); return unzoom(); }
+  if (!state.sector || state.view !== "map") return;
+  const q = $("#q");
+  if (e.key === "Escape") {
+    e.preventDefault();
+    if (document.activeElement === q && q.value) { q.value = ""; state.query = ""; applyFilter(); }
+    else if (state.expanded.size) {
+      state.expanded.clear();
+      document.querySelectorAll(".card.expanded").forEach(c => {
+        c.classList.remove("expanded");
+        const btn = c.querySelector(".toggle button");
+        btn.setAttribute("aria-expanded", false);
+        btn.innerHTML = `Show chart &amp; news <span class="chev">▾</span>`;
+      });
+      settleFocus();
+    }
+    else closeSector();
+  } else if (e.key === "/" && document.activeElement !== q) { e.preventDefault(); q.focus(); }
+});
+
+$("#q").addEventListener("input", e => { state.query = e.target.value; applyFilter(); });
+function applyFilter() {
+  const q = state.query.trim().toLowerCase();
+  let shown = 0;
+  for (const c of document.querySelectorAll("#cards .card")) {
+    const h = byT[c.dataset.t];
+    const hit = !q || [h.t, h.name, h.pitch].some(x => x.toLowerCase().includes(q));
+    c.hidden = !hit; if (hit) shown++;
+  }
+  const total = state.sector ? state.sector.holdings.length : 0;
+  $("#qcount").textContent = q ? `${shown} of ${total}` : "";
+  $("#empty").hidden = shown > 0;
+  updateFocus();
+}
+
+// click a row to show / hide its chart and news
+$("#cards").addEventListener("click", e => {
+  if (e.target.closest("a, .help")) return;
+  const card = e.target.closest(".card"); if (!card) return;
+  const t = card.dataset.t, open = !state.expanded.has(t);
+  const collapsedH = card.offsetHeight;
+  open ? state.expanded.add(t) : state.expanded.delete(t);
+  card.classList.toggle("expanded", open);
+  if (open) centerCard(card, collapsedH + card.querySelector(".more .inner").scrollHeight);
+  const btn = card.querySelector(".toggle button");
+  btn.setAttribute("aria-expanded", open);
+  btn.innerHTML = `${open ? "Hide" : "Show"} chart &amp; news <span class="chev">▾</span>`;
+  if (open) drawChart(byT[t]);
+  settleFocus();
+});
+function settleFocus() { updateFocus(); setTimeout(updateFocus, 260); }
+
+// Scroll so the expanded card (at its final height) sits in the middle of the area below the sticky header.
+// If it's taller than that area, line its top up just under the header instead.
+function centerCard(card, finalH, instant) {
+  const sec = $("#sector"), headH = $("#sec-head").offsetHeight;
+  const visible = sec.clientHeight - headH;
+  const top = finalH <= visible
+    ? card.offsetTop - headH - (visible - finalH) / 2
+    : card.offsetTop - headH - 16;
+  animateScroll(sec, Math.max(0, top), instant || reduceMotion() ? 0 : 260);
+}
+// Same duration and easing as the row expanding, so both finish together.
+let scrollAnim = 0;
+function animateScroll(el, to, ms) {
+  cancelAnimationFrame(scrollAnim);
+  const from = el.scrollTop, t0 = performance.now();
+  if (!ms || Math.abs(to - from) < 2) { el.scrollTop = to; return; }
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  const step = now => {
+    const t = Math.min(1, (now - t0) / ms);
+    el.scrollTop = from + (to - from) * ease(t);
+    if (t < 1) scrollAnim = requestAnimationFrame(step);
+  };
+  scrollAnim = requestAnimationFrame(step);
+}
+
+function renderSector() {
+  const s = state.sector; if (!s) return;
+  const fill = blockFill(s);
+  const head = $("#sec-head");
+  head.style.background = fill || css("--surface-2");
+  head.style.color = fill ? inkOn(fill) : css("--text-primary");
+  const p = D.periods[state.period];
+  const ce = p.contribution.find(c => c.name === s.name) || { fund: 0, vti: 0 };
+  const active = s.vtiW != null ? s.w - s.vtiW : null;
+  // Green/red = did this positioning help vs VTI over the selected period?
+  // Over/underweight is a bet, so it is "good" when the sector's contribution beat VTI's for that sector.
+  const paid = s.vtiW != null ? ce.fund - ce.vti : ce.fund;
+  const paidTip = s.vtiW != null
+    ? `Green when the bet paid off: this sector added ${pts(ce.fund, 2)} to the fund vs ${pts(ce.vti, 2)} for VTI (${periodLabel(state.period)}).`
+    : `Green when this holding added to the fund's return (${periodLabel(state.period)}).`;
+  head.innerHTML = `<div class="sec-head-inner">
+    <button class="back" aria-label="Back to all sectors (Esc)">← All sectors</button>
+    <h2 class="sec-title">${esc(s.name)}</h2>
+    <div class="sec-facts">
+      <span class="pill" data-tip="${esc(paidTip)}"><b class="${cls(paid)}">${s.w.toFixed(1)}%</b> of fund</span>
+      ${s.vtiW != null ? `<span class="pill"><b>${s.vtiW.toFixed(1)}%</b> of VTI</span>
+      <span class="pill" data-tip="${esc(paidTip)}"><b class="${cls(paid)}">${pts(active)}</b> ${active >= 0 ? "overweight" : "underweight"}</span>` : ""}
+      <span class="pill"><b>${s.holdings.length}</b> holding${s.holdings.length > 1 ? "s" : ""}</span>
+      <span class="pill"><b class="${cls(ce.fund)}">${pts(ce.fund, 2)}</b> contribution · ${periodLabel(state.period)}</span>
+    </div></div>`;
+  head.querySelector(".back").onclick = () => closeSector();
+  $("#q").placeholder = `Search ${s.holdings.length} holding${s.holdings.length > 1 ? "s" : ""} in ${s.name}…`;
+  $("#cards").innerHTML = s.holdings.map(t => cardHTML(byT[t])).join("");
+  state.expanded.forEach(t => drawChart(byT[t]));
+  packPills();
+  measureHead();
+  applyFilter();
+}
+
+// When the header pills wrap, fit them into as few lines as possible: place the widest first,
+// each into the first line with room. Lines keep the usual top-to-bottom order, and pills keep
+// their usual order within a line. Only the visual order (CSS order) changes.
+function packPills() {
+  const facts = $("#sec-head .sec-facts"); if (!facts) return;
+  const pills = [...facts.children];
+  pills.forEach(p => p.style.order = "");
+  const W = facts.clientWidth, gap = parseFloat(getComputedStyle(facts).columnGap) || 8;
+  const widths = pills.map(p => p.getBoundingClientRect().width);
+  if (widths.reduce((a, b) => a + b, 0) + gap * (pills.length - 1) <= W) return; // already one line
+  const rows = [];
+  for (const i of pills.map((_, i) => i).sort((a, b) => widths[b] - widths[a])) {
+    const row = rows.find(r => r.w + gap + widths[i] <= W);
+    if (row) { row.items.push(i); row.w += gap + widths[i]; } else rows.push({ w: widths[i], items: [i] });
+  }
+  rows.forEach(r => r.items.sort((a, b) => a - b));
+  rows.sort((a, b) => a.items[0] - b.items[0]);
+  rows.forEach((r, ri) => r.items.forEach(i => pills[i].style.order = ri * 100 + i));
+}
+
+// Phones: the dark content pushes the colored header up as you scroll. The header's bottom edge
+// follows the content's top edge pixel for pixel, clipping the pills, until only the back button
+// and title are left. Height shrinks by c while margin-bottom grows by c, so the space the header
+// takes in the page never changes and the content never jumps.
+const mqPhone = matchMedia("(max-width: 820px)");
+const headSize = { full: 0, compact: 0 };
+function measureHead() {
+  const head = $("#sec-head");
+  head.style.height = ""; head.style.marginBottom = "";
+  if (!mqPhone.matches || !head.querySelector(".back")) return;
+  const top = head.getBoundingClientRect().top;
+  const back = head.querySelector(".back").getBoundingClientRect(), title = head.querySelector(".sec-title").getBoundingClientRect();
+  headSize.full = head.offsetHeight;
+  headSize.compact = Math.ceil(Math.max(back.bottom, title.bottom) - top + 10); // title may wrap under the button
+  updateHeadClip();
+}
+function updateHeadClip() {
+  const head = $("#sec-head");
+  if (!mqPhone.matches || !headSize.full) { head.style.height = ""; head.style.marginBottom = ""; return; }
+  const c = Math.min(Math.max($("#sector").scrollTop, 0), headSize.full - headSize.compact);
+  head.style.height = headSize.full - c + "px";
+  head.style.marginBottom = c + "px";
+}
+
+function cardHTML(h) {
+  const k = state.period, r = h.ret[k], vr = h.vtiRet[k], c = h.contrib[k];
+  const heldMonths = h.series.length - 1;
+  const long = k === "SI" ? heldMonths > 12 : MONTHS[k] > 12;
+  const per = long ? "/yr" : "";
+  const notHeld = r == null;
+  const since = h.sinceIsDataStart ? `Held since at least ${fmtMonth(h.since)}` : `Bought ${fmtMonth(h.since)}`;
+  const isStock = h.kind === "stock";
+  const maxW = Math.max(h.w, h.vtiW || 0, 1);
+  const weightTile = isStock ? `
+      <div class="tile"><div class="k">Weight: fund vs VTI ${helpIcon("Share of the fund in this stock vs. its share of VTI, the benchmark. Bigger than VTI = overweight, meaning we are betting on it.")}</div>
+        <div class="v">${h.w.toFixed(1)}% <span class="sub">vs ${h.vtiW.toFixed(2)}%</span></div>
+        <div class="wbars">
+          <div class="wbar"><span>SIF</span><i style="width:${h.w / maxW * 100}%;background:var(--series-1)"></i></div>
+          <div class="wbar"><span>VTI</span><i style="width:${h.vtiW / maxW * 100}%;background:var(--bench)"></i></div>
+        </div></div>`
+    : `<div class="tile"><div class="k">Weight in fund ${helpIcon(h.kind === "cash" ? "Cash and T-bills held for flexibility." : "ETFs are baskets of many stocks, so there is no single VTI weight to compare.")}</div>
+        <div class="v">${h.w.toFixed(1)}%</div><div class="sub">${h.kind === "cash" ? "cash" : "ETF, not compared to VTI"}</div></div>`;
+  const open = state.expanded.has(h.t);
+  return `<article class="card${open ? " expanded" : ""}" data-t="${h.t}">
+    <div class="card-head">
+      <span class="ticker">${esc(h.t)}</span><span class="cname">${esc(h.name)}</span>
+      <span class="cvalue">${money(h.value)}</span>
+    </div>
+    <div class="chips"><span class="chip">${since}</span>${h.income12 > 0 ? `<span class="chip">$${Math.round(h.income12).toLocaleString()} dividends, last 12 mo</span>` : ""}</div>
+    <div class="tiles">
+      <div class="tile"><div class="k">Return · ${periodLabel(k)} ${helpIcon("How much this position gained or lost, including dividends. Over 1 year, shown per year.")}</div>
+        <div class="v ${cls(r)}">${notHeld ? "—" : pct(r * 100) + `<span class="sub">${per}</span>`}</div>
+        <div class="sub">${notHeld ? `Not held for the full ${periodLabel(k)}` : `VTI ${pct(vr * 100)}${per}`}</div></div>
+      <div class="tile"><div class="k">vs VTI ${helpIcon("This position's return minus VTI's return over the same months. Positive = it beat the market.")}</div>
+        <div class="v ${cls(notHeld ? null : r - vr)}">${notHeld ? "—" : pts((r - vr) * 100)}</div>
+        <div class="sub">${notHeld ? "" : (r > vr ? "beat the market" : "trailed the market")}</div></div>
+      <div class="tile"><div class="k">Contribution ${helpIcon("Percentage points this position added to the whole fund's return. A big position with a small gain can contribute more than a tiny position with a huge gain.")}</div>
+        <div class="v ${cls(c)}">${c == null ? "—" : pts(c * 100, 2)}</div>
+        <div class="sub">of fund return, ${periodLabel(k)}</div></div>
+      ${weightTile}
+    </div>
+    <div class="pitch">
+      <h4 class="panel-title">Why we own it ${h.pitchIsReal ? `<span class="tag">From the pitch</span>` : `<span class="tag">Placeholder</span>`}</h4>
+      <p>${esc(h.pitch)}</p>
+      ${h.deck ? `<a class="decklink" href="${h.deck}" target="_blank" rel="noopener">Full pitch deck →</a>` : `<a class="decklink off" aria-disabled="true">Pitch deck · link coming</a>`}
+    </div>
+    <div class="more"><div class="inner">
+      <div class="card-body">
+        <div class="chart" id="chart-${h.t}">
+          <h4 class="panel-title">Growth of $100 vs VTI</h4>
+          <svg role="img" aria-label="Growth of 100 dollars in ${esc(h.t)} vs VTI"></svg>
+          <div class="note"></div>
+        </div>
+        <div>
+          <h4 class="panel-title">Recent news <span class="tag">Live in v2</span></h4>
+          <ul class="news" aria-label="Recent news (placeholder)">
+            ${[0, 1, 2].map(() => `<li><span class="h"></span><span class="h short"></span><span class="src">News source · date</span></li>`).join("")}
+          </ul>
+        </div>
+      </div>
+    </div></div>
+    <div class="toggle"><button aria-expanded="${open}">${open ? "Hide" : "Show"} chart &amp; news <span class="chev">▾</span></button></div>
+  </article>`;
+}
+
+function drawChart(h) {
+  const wrap = document.getElementById("chart-" + h.t); if (!wrap) return;
+  const svg = d3.select(wrap.querySelector("svg"));
+  const k = state.period;
+  let pts_ = h.series;
+  let note = "";
+  if (k !== "SI") {
+    const n = MONTHS[k] + 1;
+    if (pts_.length >= n) pts_ = pts_.slice(-n);
+    else note = `Held for less than ${periodLabel(k)}, showing since ${fmtMonth(h.since)}.`;
+  }
+  if (h.sinceIsDataStart && (k === "SI" || pts_ === h.series)) note = "Data starts Sep 2018; the position may be older.";
+  // rebase to 100 at the window start
+  const b0 = pts_[0][1], v0 = pts_[0][2];
+  const data = pts_.map(([d, a, v]) => ({ d: new Date(d + "T12:00:00"), a: a / b0 * 100, v: v / v0 * 100 }));
+  const W = wrap.clientWidth, H = 180, m = { t: 10, r: 46, b: 22, l: 36 };
+  svg.attr("viewBox", `0 0 ${W} ${H}`).selectAll("*").remove();
+  const x = d3.scaleTime().domain(d3.extent(data, d => d.d)).range([m.l, W - m.r]);
+  const lo = d3.min(data, d => Math.min(d.a, d.v)), hi = d3.max(data, d => Math.max(d.a, d.v));
+  const y = d3.scaleLinear().domain([lo, hi]).nice(4).range([H - m.b, m.t]);
+  const grid = css("--border"), muted = css("--text-muted");
+  svg.append("g").selectAll("line").data(y.ticks(4)).join("line")
+    .attr("x1", m.l).attr("x2", W - m.r).attr("y1", y).attr("y2", y).attr("stroke", grid);
+  svg.append("g").selectAll("text").data(y.ticks(4)).join("text")
+    .attr("x", m.l - 6).attr("y", d => y(d) + 4).attr("text-anchor", "end").attr("font-size", 11).attr("fill", muted).text(d => "$" + d);
+  const xt = x.ticks(Math.max(2, Math.floor(W / 140)));
+  svg.append("g").selectAll("text").data(xt).join("text")
+    .attr("x", x).attr("y", H - 4).attr("text-anchor", "middle").attr("font-size", 11).attr("fill", muted)
+    .text(d => data.length > 14 ? d3.timeFormat("%Y")(d) : d3.timeFormat("%b %y")(d));
+  const line = key => d3.line().x(d => x(d.d)).y(d => y(d[key])).curve(d3.curveMonotoneX)(data);
+  svg.append("path").attr("d", line("v")).attr("fill", "none").attr("stroke", css("--bench")).attr("stroke-width", 2).attr("stroke-dasharray", "4 3");
+  svg.append("path").attr("d", line("a")).attr("fill", "none").attr("stroke", css("--series-1")).attr("stroke-width", 2);
+  const last = data[data.length - 1];
+  let ya = y(last.a), yv = y(last.v);
+  if (Math.abs(ya - yv) < 13) { const mid = (ya + yv) / 2; ya = mid + (ya < yv ? -7 : 7); yv = mid + (ya < yv ? 7 : -7); }
+  svg.append("text").attr("x", W - m.r + 6).attr("y", ya + 4).attr("font-size", 11).attr("font-weight", 600).attr("fill", css("--text-primary")).text(h.t);
+  svg.append("text").attr("x", W - m.r + 6).attr("y", yv + 4).attr("font-size", 11).attr("fill", css("--text-secondary")).text("VTI");
+  // hover crosshair
+  const cross = svg.append("line").attr("y1", m.t).attr("y2", H - m.b).attr("stroke", muted).attr("opacity", 0);
+  const dotA = svg.append("circle").attr("r", 4).attr("fill", css("--series-1")).attr("stroke", css("--surface-1")).attr("stroke-width", 2).attr("opacity", 0);
+  const dotV = svg.append("circle").attr("r", 4).attr("fill", css("--bench")).attr("stroke", css("--surface-1")).attr("stroke-width", 2).attr("opacity", 0);
+  svg.append("rect").attr("x", m.l).attr("y", 0).attr("width", W - m.l - m.r).attr("height", H).attr("fill", "transparent")
+    .on("pointermove", e => {
+      const [mx] = d3.pointer(e);
+      const i = d3.bisectCenter(data.map(d => +d.d), +x.invert(mx)), d = data[i];
+      cross.attr("x1", x(d.d)).attr("x2", x(d.d)).attr("opacity", .5);
+      dotA.attr("cx", x(d.d)).attr("cy", y(d.a)).attr("opacity", 1);
+      dotV.attr("cx", x(d.d)).attr("cy", y(d.v)).attr("opacity", 1);
+      showTip(e, `<b>${d3.timeFormat("%b %Y")(d.d)}</b><div class="row"><span>${esc(h.t)}</span><b>$${d.a.toFixed(0)}</b></div><div class="row"><span>VTI</span><b>$${d.v.toFixed(0)}</b></div>`);
+    })
+    .on("pointerleave", () => { cross.attr("opacity", 0); dotA.attr("opacity", 0); dotV.attr("opacity", 0); hideTip(); });
+  wrap.querySelector(".note").textContent = note;
+}
+
+/* focus effect: the card nearest the middle of the screen is full size */
+function updateFocus() {
+  const sec = $("#sector"); if (!sec.classList.contains("open") && !state.sector) return;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const box = sec.getBoundingClientRect(), headBottom = $("#sec-head").getBoundingClientRect().bottom;
+  const visible = box.bottom - headBottom;
+  // The in-focus line is normally the middle of the area under the header. At the very top the
+  // first row can't reach the middle (and at the very bottom the last row can't), so the line
+  // starts on that row and slides to the middle as you scroll away from the end.
+  const cards = [...sec.querySelectorAll(".card:not([hidden])")];
+  let focusY = headBottom + visible / 2;
+  if (cards.length) {
+    const center = c => { const r = c.getBoundingClientRect(); return r.top + r.height / 2; };
+    const s = sec.scrollTop, rem = sec.scrollHeight - sec.clientHeight - s;
+    if (s <= rem) focusY = Math.min(focusY, center(cards[0]) + 2 * s);
+    else focusY = Math.max(focusY, center(cards[cards.length - 1]) - 2 * rem);
+  }
+  for (const c of sec.querySelectorAll(".card")) {
+    // fully in focus while the row covers the focus line (rows can be taller than the screen on phones)
+    const r = c.getBoundingClientRect();
+    const dist = focusY < r.top ? r.top - focusY : focusY > r.bottom ? focusY - r.bottom : 0;
+    const t = Math.min(1, dist / (visible * 0.5));
+    c.style.opacity = (1 - 0.6 * t).toFixed(3);
+    c.style.transform = reduce ? "" : `scale(${(1 - 0.09 * t).toFixed(4)})`;
+  }
+}
+let raf = 0;
+$("#sector").addEventListener("scroll", () => {
+  updateHeadClip(); // every scroll event, so the header edge never lags behind the content
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(updateFocus);
+}, { passive: true });
+
+/* ---------- contribution butterfly ---------- */
+function renderContrib() {
+  const p = D.periods[state.period];
+  const rows = p.contribution.filter(c => Math.abs(c.fund) > 0.005 || Math.abs(c.vti) > 0.005)
+    .sort((a, b) => b.fund - a.fund);
+  const max = d3.max(rows, r => Math.max(Math.abs(r.fund), Math.abs(r.vti))) || 1;
+  const bar = (v, side) => `<div class="track ${side}"><div class="bar" style="width:${Math.abs(v) / max * 100}%;background:${v >= 0 ? "var(--good)" : "var(--bad)"}"></div></div>`;
+  const kindOf = n => (D.sectors.find(s => s.name === n) || {}).kind;
+  const row = (r, extra = "") => {
+    const k = kindOf(r.name);
+    const sub = r.name === "Sold positions" ? "no longer held" : k === "etf" ? "ETF theme" : k === "cash" ? "cash" : "";
+    return `<div class="brow ${extra}" data-tip="${esc(`<b>${r.name}</b><div class='row'><span>SIF contribution</span><b>${pts(r.fund, 2)}</b></div><div class='row'><span>VTI contribution</span><b>${pts(r.vti, 2)}</b></div><div class='row'><span>Difference</span><b>${pts(r.fund - r.vti, 2)}</b></div>`)}">
+      <span class="val l ${cls(r.vti)}">${Math.abs(r.vti) < 0.005 ? "–" : pts(r.vti, 2).replace(" pts", "")}</span>
+      ${bar(r.vti, "left")}
+      <span class="lab">${esc(r.name)}${sub ? `<small>${sub}</small>` : ""}</span>
+      ${bar(r.fund, "right")}
+      <span class="val ${cls(r.fund)}">${Math.abs(r.fund) < 0.005 ? "–" : pts(r.fund, 2).replace(" pts", "")}</span>
+    </div>`;
+  };
+  $("#bfly").innerHTML = `<div class="bhead"><span class="l">← VTI</span><span></span><span class="r">SIF →</span></div>` +
+    rows.map(r => row(r)).join("") +
+    `<div class="brow total"><span class="val l ${cls(p.vti)}">${pct(p.vti)}</span><span></span><span class="lab">Total return</span><span></span><span class="val ${cls(p.fund)}">${pct(p.fund)}</span></div>`;
+  $("#contrib-sub").textContent = `Percentage points each sector added to (or took away from) the return, ${fmtMonth(p.start)} → ${fmtMonth(D.asOf)}. ` +
+    (p.months > 12 ? "Multi-year periods show the total over the whole period, not per year." : "");
+}
+
+/* ---------- tooltip ---------- */
+const tip = $("#tip");
+function showTip(e, html) {
+  tip.innerHTML = html; tip.style.opacity = 1;
+  const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8), y = Math.min(e.clientY + 14, innerHeight - tip.offsetHeight - 8);
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+function hideTip() { tip.style.opacity = 0; }
+document.addEventListener("pointermove", e => {
+  const t = e.target.closest && e.target.closest("[data-tip]");
+  if (t) showTip(e, t.classList.contains("help") ? esc(t.dataset.tip) : t.dataset.tip);
+  else if (!e.target.closest("svg")) hideTip();
+});
+document.addEventListener("focusin", e => {
+  const t = e.target.closest("[data-tip]"); if (!t) return;
+  const r = t.getBoundingClientRect();
+  showTip({ clientX: r.left, clientY: r.bottom }, t.classList.contains("help") ? esc(t.dataset.tip) : t.dataset.tip);
+});
+document.addEventListener("focusout", hideTip);
+
+/* ---------- glue ---------- */
+function renderAll() {
+  const sec = $("#sector");
+  if (state.sector && sec.classList.contains("open")) state.secScroll = sec.scrollTop;
+  renderPeriods(); renderStats();
+  document.documentElement.style.setProperty("--hdr-h", $("#hdr").offsetHeight + "px");
+  if (state.view === "map") renderMap(); else renderContrib();
+  const showSec = !!state.sector && state.view === "map";
+  if (showSec) renderSector();
+  showSector(showSec);
+  if (showSec) { sec.scrollTop = state.secScroll; updateHeadClip(); updateFocus(); }
+}
+let rz = 0;
+addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(renderAll, 120); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
+renderAll();
+</script>
+</body>
+</html>
