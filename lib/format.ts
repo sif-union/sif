@@ -2,7 +2,7 @@
 const sign = (v: number) => (v > 0 ? "+" : v < 0 ? "−" : "");
 
 export const pct = (v: number | null, digits = 1) => (v == null ? "—" : sign(v) + Math.abs(v * 100).toFixed(digits) + "%");
-export const pts = (v: number | null, digits = 1) => (v == null ? "—" : sign(v) + Math.abs(v * 100).toFixed(digits) + " pts");
+export const pp = (v: number | null, digits = 1) => (v == null ? "—" : sign(v) + Math.abs(v * 100).toFixed(digits) + " pp");
 export const share = (v: number, digits = 1) => (v * 100).toFixed(digits) + "%"; // a weight, no sign
 export const money = (v: number) => (v >= 1e6 ? "$" + (v / 1e6).toFixed(2) + "M" : "$" + Math.round(v / 1000) + "K");
 

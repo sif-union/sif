@@ -2,7 +2,7 @@
 import { hierarchy, treemap, treemapSquarify } from "d3-hierarchy";
 import type { Period } from "@/lib/performance";
 import type { Group, SiteData } from "@/lib/site-data";
-import { pts, share } from "@/lib/format";
+import { pp, share } from "@/lib/format";
 import { groupFill } from "./colors";
 import { useSize } from "./dom";
 import { box } from "./StockMap";
@@ -30,7 +30,7 @@ export default function SectorMap({ data, period, onOpen }: Props) {
           const g = n.data.group!, w = n.x1 - n.x0, h = n.y1 - n.y0;
           const fill = groupFill(g);
           const overweight = g.vtiWeight == null ? null : g.weight - g.vtiWeight;
-          const meta = overweight != null ? `${pts(overweight)} vs VTI` : g.kind === "cash" ? "Cash" : "ETF theme";
+          const meta = overweight != null ? `${pp(overweight)} vs VTI` : g.kind === "cash" ? "Cash" : "ETF theme";
           const c = contributionOf(g.name);
           return (
             <button key={g.name} className={styles.block} data-group={g.name}
@@ -44,15 +44,15 @@ export default function SectorMap({ data, period, onOpen }: Props) {
                 <TipRow label="Share of fund" value={share(g.weight)} />
                 {overweight != null && <>
                   <TipRow label="Share of VTI" value={share(g.vtiWeight!)} />
-                  <TipRow label="Over / under" value={pts(overweight)} />
+                  <TipRow label="Over / under" value={pp(overweight)} />
                 </>}
-                <TipRow label={`Contribution (${period})`} value={pts(c, 2)} />
+                <TipRow label={`Contribution (${period})`} value={pp(c, 2)} />
                 <div className={styles.tipNote}>{g.holdings.join(", ")}</div>
               </>)}>
               <span className={styles.bname}>{g.name}</span>
               <span className={styles.bweight}>{share(g.weight)}</span>
               <span className={styles.bmeta}>{meta}</span>
-              <span className={`${styles.bmeta} ${styles.bcontrib}`}>{pts(c, 2)} contribution · {period}</span>
+              <span className={`${styles.bmeta} ${styles.bcontrib}`}>{pp(c, 2)} contribution · {period}</span>
               <span className={styles.btick}>{g.holdings.join(" · ")}</span>
             </button>
           );
@@ -64,7 +64,7 @@ export default function SectorMap({ data, period, onOpen }: Props) {
           <span>Underweight</span>
           <div className={styles.rampBar} style={{ background: "linear-gradient(90deg, var(--div-neg), var(--div-mid), var(--div-pos))" }} />
           <span>Overweight vs VTI</span>
-          <div className={styles.rampTicks}><span>−15 pts</span><span>same</span><span>+15 pts</span></div>
+          <div className={styles.rampTicks}><span>−15 pp</span><span>same</span><span>+15 pp</span></div>
         </div>
         <span><span className={styles.swatch} />ETF themes &amp; cash (no VTI weight to compare)</span>
         {notHeld.length > 0 && (

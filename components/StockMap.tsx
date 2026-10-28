@@ -4,7 +4,7 @@ import { hierarchy, treemap, treemapSquarify, type HierarchyRectangularNode } fr
 import type { Period } from "@/lib/performance";
 import type { Group, Holding, SiteData } from "@/lib/site-data";
 import { annualize } from "@/lib/performance";
-import { monthYear, pct, pts, share } from "@/lib/format";
+import { monthYear, pct, pp, share } from "@/lib/format";
 import { mix } from "./colors";
 import { useSize } from "./dom";
 import { TipRow, useTip } from "./Tooltip";
@@ -80,7 +80,7 @@ export default function StockMap({ data, period, zoom, onZoom, onOpen }: Props) 
           const rel = vsVti(h, period);
           const t = rel == null ? 0 : Math.max(-1, Math.min(1, rel / RANGE[period]));
           const fill = h.kind === "cash" ? null : mix(t && Math.sign(t) * (Math.abs(t) * 0.85 + 0.15), "--bad", "--good");
-          const relText = h.kind === "cash" ? "cash" : rel == null ? `held < ${period}` : pts(rel);
+          const relText = h.kind === "cash" ? "cash" : rel == null ? `held < ${period}` : pp(rel);
           const p = h.periods[period];
 
           return (
@@ -97,7 +97,7 @@ export default function StockMap({ data, period, zoom, onZoom, onOpen }: Props) 
                   : <>
                       <TipRow label={`Return (${period === "Max" ? "since bought" : period})`} value={pct(annualize(p!.return!, p!.months))} />
                       <TipRow label="VTI, same months" value={pct(annualize(p!.vtiReturn!, p!.months))} />
-                      <TipRow label="vs VTI" value={pts(rel)} />
+                      <TipRow label="vs VTI" value={pp(rel)} />
                     </>)}
                 <div className={styles.tipNote}>{g.name} · {tiny ? "click to zoom into the sector" : "click for details"}</div>
               </>)}>
@@ -114,7 +114,7 @@ export default function StockMap({ data, period, zoom, onZoom, onOpen }: Props) 
           <span>Trailed VTI</span>
           <div className={styles.rampBar} style={{ background: "linear-gradient(90deg, var(--bad), var(--div-mid), var(--good))" }} />
           <span>Beat VTI</span>
-          <div className={styles.rampTicks}><span>−{RANGE[period] * 100} pts</span><span>same</span><span>+{RANGE[period] * 100} pts</span></div>
+          <div className={styles.rampTicks}><span>−{RANGE[period] * 100} pp</span><span>same</span><span>+{RANGE[period] * 100} pp</span></div>
         </div>
         <span><span className={`${styles.swatch} ${styles.flat}`} />Not held for the full period</span>
         <span><span className={styles.swatch} />Cash</span>

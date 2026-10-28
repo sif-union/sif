@@ -1,7 +1,7 @@
 // Sticky header: title, tabs, period bar and the fund's headline numbers for the chosen period.
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { annualize, PERIODS, type Period } from "@/lib/performance";
-import { fullDate, money, monthYear, pct, pts, tone } from "@/lib/format";
+import { fullDate, money, monthYear, pct, pp, tone } from "@/lib/format";
 import type { SiteData } from "@/lib/site-data";
 import styles from "./Header.module.css";
 
@@ -82,15 +82,20 @@ function updateFades(el: HTMLElement) {
 
 function Stats({ data, period }: Pick<Props, "data" | "period">) {
   const p = data.periods[period]!;
-  const diff = p.vtiReturn == null ? null : p.fundReturn - p.vtiReturn;
-  const perYear = (r: number | null) => r != null && p.months > 12 && <span className={styles.muted}> ({pct(annualize(r, p.months))}/yr)</span>;
+  // Over a year, lead with the yearly rate and put the total for the whole period in parentheses.
+  const long = p.months > 12;
+  const yearly = (r: number | null) => (r == null || !long ? r : annualize(r, p.months));
+  const perYear = long ? "/yr" : "";
+  const total = (text: string) => long && <span className={styles.muted}> ({text} total)</span>;
+  const diff = p.vtiReturn == null ? null : yearly(p.fundReturn)! - yearly(p.vtiReturn)!;
+  const totalDiff = p.vtiReturn == null ? null : p.fundReturn - p.vtiReturn;
 
   return (
     <div className={styles.stats}>
       <span>Fund value <b>{money(data.fundValue)}</b></span>
-      <span>Fund return <b className={tone(p.fundReturn)}>{pct(p.fundReturn)}</b>{perYear(p.fundReturn)}</span>
-      <span>VTI <b className={tone(p.vtiReturn)}>{pct(p.vtiReturn)}</b>{perYear(p.vtiReturn)}</span>
-      <span>Difference <b className={tone(diff)}>{pts(diff)}</b></span>
+      <span>Fund return <b className={tone(p.fundReturn)}>{pct(yearly(p.fundReturn))}{perYear}</b>{total(pct(p.fundReturn))}</span>
+      <span>VTI <b className={tone(p.vtiReturn)}>{pct(yearly(p.vtiReturn))}{perYear}</b>{total(pct(p.vtiReturn))}</span>
+      <span>Difference <b className={tone(diff)}>{pp(diff)}{perYear}</b>{total(pp(totalDiff))}</span>
       <span className={styles.muted}>{monthYear(p.start)} → {monthYear(data.asOf)} · data as of {fullDate(data.asOf)}</span>
     </div>
   );

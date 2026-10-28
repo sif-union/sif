@@ -1,7 +1,7 @@
 // The Contribution tab: a butterfly chart of how many points each group added to the return, VTI on the left, the fund on the right.
 import type { Period } from "@/lib/performance";
 import type { Contribution, SiteData } from "@/lib/site-data";
-import { monthYear, pct, pts, tone } from "@/lib/format";
+import { monthYear, pct, pp, tone } from "@/lib/format";
 import { TipRow, useTip } from "./Tooltip";
 import styles from "./ContributionView.module.css";
 
@@ -13,7 +13,7 @@ export default function ContributionView({ data, period }: { data: SiteData; per
   const rows = p.contribution.filter((c) => Math.abs(c.fund) > TINY || Math.abs(c.vti) > TINY).sort((a, b) => b.fund - a.fund);
   const max = Math.max(...rows.flatMap((r) => [Math.abs(r.fund), Math.abs(r.vti)]), 1e-9);
   const kindOf = (name: string) => data.groups.find((g) => g.name === name)?.kind; // none for "Sold positions"
-  const number = (v: number) => (Math.abs(v) < TINY ? "–" : pts(v, 2).replace(" pts", ""));
+  const number = (v: number) => (Math.abs(v) < TINY ? "–" : pp(v, 2).replace(" pp", ""));
 
   const bar = (v: number, side: "left" | "right") => (
     <div className={`${styles.track} ${styles[side]}`}>
@@ -25,7 +25,7 @@ export default function ContributionView({ data, period }: { data: SiteData; per
     const sub = !kind ? "no longer held" : kind === "etf" ? "ETF theme" : kind === "cash" ? "cash" : "";
     return (
       <div key={r.name} className={styles.row}
-        {...tip(<><b>{r.name}</b><TipRow label="SIF contribution" value={pts(r.fund, 2)} /><TipRow label="VTI contribution" value={pts(r.vti, 2)} /><TipRow label="Difference" value={pts(r.fund - r.vti, 2)} /></>)}>
+        {...tip(<><b>{r.name}</b><TipRow label="SIF contribution" value={pp(r.fund, 2)} /><TipRow label="VTI contribution" value={pp(r.vti, 2)} /><TipRow label="Difference" value={pp(r.fund - r.vti, 2)} /></>)}>
         <span className={`${styles.val} ${styles.l} ${tone(r.vti)}`}>{number(r.vti)}</span>
         {bar(r.vti, "left")}
         <span className={styles.label}>{r.name}{sub && <small>{sub}</small>}</span>

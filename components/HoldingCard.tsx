@@ -2,7 +2,7 @@
 import type { Period } from "@/lib/performance";
 import type { Holding } from "@/lib/site-data";
 import { annualize } from "@/lib/performance";
-import { money, monthYear, pct, pts, share, tone } from "@/lib/format";
+import { money, monthYear, pct, pp, share, tone } from "@/lib/format";
 import GrowthChart from "./GrowthChart";
 import { vsVti } from "./StockMap";
 import { Help } from "./Tooltip";
@@ -38,12 +38,12 @@ export default function HoldingCard({ holding: h, period, expanded, hidden, onTo
         </div>
         <div className={styles.tile}>
           <div className={styles.k}>vs VTI <Help text="This position's return minus VTI's return over the same months. Positive = it beat the market." /></div>
-          <div className={`${styles.v} ${tone(rel)}`}>{pts(rel)}</div>
+          <div className={`${styles.v} ${tone(rel)}`}>{pp(rel)}</div>
           <div className={styles.sub}>{rel == null ? "" : rel > 0 ? "beat the market" : "trailed the market"}</div>
         </div>
         <div className={styles.tile}>
           <div className={styles.k}>Contribution <Help text="Percentage points this position added to the whole fund's return. A big position with a small gain can contribute more than a tiny position with a huge gain." /></div>
-          <div className={`${styles.v} ${tone(p.contribution)}`}>{pts(p.contribution, 2)}</div>
+          <div className={`${styles.v} ${tone(p.contribution)}`}>{pp(p.contribution, 2)}</div>
           <div className={styles.sub}>of fund return, {period}</div>
         </div>
         {h.vtiWeight != null ? (

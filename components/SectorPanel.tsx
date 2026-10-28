@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Period } from "@/lib/performance";
 import type { Group, SiteData } from "@/lib/site-data";
-import { pts, share, tone } from "@/lib/format";
+import { pp, share, tone } from "@/lib/format";
 import { groupFill } from "./colors";
 import { animateScroll, reduceMotion } from "./dom";
 import HoldingCard from "./HoldingCard";
@@ -179,7 +179,7 @@ export default function SectorPanel({ data, group, period, focusTicker, from, ac
   const paid = group.vtiWeight == null ? c.fund : c.fund - c.vti;
   const paidTip = group.vtiWeight == null
     ? `Green when this holding added to the fund's return (${period}).`
-    : `Green when the bet paid off: this sector added ${pts(c.fund, 2)} to the fund vs ${pts(c.vti, 2)} for VTI (${period}).`;
+    : `Green when the bet paid off: this sector added ${pp(c.fund, 2)} to the fund vs ${pp(c.vti, 2)} for VTI (${period}).`;
   const count = group.holdings.length, plural = count > 1 ? "s" : "";
 
   const q = query.trim().toLowerCase();
@@ -200,10 +200,10 @@ export default function SectorPanel({ data, group, period, focusTicker, from, ac
             <span className={styles.pill} {...tip(paidTip)}><b className={tone(paid)}>{share(group.weight)}</b> of fund</span>
             {overweight != null && <>
               <span className={styles.pill}><b>{share(group.vtiWeight!)}</b> of VTI</span>
-              <span className={styles.pill} {...tip(paidTip)}><b className={tone(paid)}>{pts(overweight)}</b> {overweight >= 0 ? "overweight" : "underweight"}</span>
+              <span className={styles.pill} {...tip(paidTip)}><b className={tone(paid)}>{pp(overweight)}</b> {overweight >= 0 ? "overweight" : "underweight"}</span>
             </>}
             <span className={styles.pill}><b>{count}</b> holding{plural}</span>
-            <span className={styles.pill}><b className={tone(c.fund)}>{pts(c.fund, 2)}</b> contribution · {period}</span>
+            <span className={styles.pill}><b className={tone(c.fund)}>{pp(c.fund, 2)}</b> contribution · {period}</span>
           </div>
         </div>
       </div>
