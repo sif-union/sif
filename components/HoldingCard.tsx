@@ -8,7 +8,7 @@ import { vsVti } from "./StockMap";
 import { Help } from "./Tooltip";
 import styles from "./HoldingCard.module.css";
 
-type Props = { holding: Holding; period: Period; expanded: boolean; hidden: boolean; onToggle: (card: HTMLElement) => void };
+type Props = { holding: Holding; period: Period; expanded: boolean; hidden: boolean; onToggle: (card: HTMLElement, tapY: number | null) => void }; // tapY: null for keyboard
 
 export default function HoldingCard({ holding: h, period, expanded, hidden, onToggle }: Props) {
   const p = h.periods[period]!;
@@ -19,7 +19,7 @@ export default function HoldingCard({ holding: h, period, expanded, hidden, onTo
 
   return (
     <article className={styles.card} data-card={h.ticker} data-expanded={expanded} hidden={hidden}
-      onClick={(e) => { if (!(e.target as HTMLElement).closest("a, [data-help]")) onToggle(e.currentTarget); }}>
+      onClick={(e) => { if (!(e.target as HTMLElement).closest("a, [data-help]")) onToggle(e.currentTarget, e.detail ? e.clientY : null); }}>
       <div className={styles.head}>
         <span className={styles.ticker}>{h.ticker}</span>
         <span className={styles.name}>{h.name}</span>
@@ -93,7 +93,9 @@ export default function HoldingCard({ holding: h, period, expanded, hidden, onTo
         </div>
       </div>
       <div className={styles.toggle}>
-        <button aria-expanded={expanded}>{expanded ? "Hide" : "Show"} chart &amp; news <span className={styles.chev}>▾</span></button>
+        <button aria-expanded={expanded}>{expanded ? "Hide" : "Show"} chart &amp; news
+          <svg className={styles.chev} viewBox="0 0 8 5" width="8" height="5" aria-hidden="true"><path d="M0 0h8L4 5z" /></svg>
+        </button>
       </div>
     </article>
   );

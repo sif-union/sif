@@ -42,10 +42,11 @@
 .toggle button {
   border: 1px solid var(--ctl-border); background: var(--ctl-track); color: var(--text-secondary); font-size: 12px; font-weight: 600;
   cursor: pointer; padding: 5px 14px; border-radius: 999px; transition: background .12s, color .12s;
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
 }
 .toggle button:hover { background: var(--ctl-on); border-color: var(--ctl-on-border); color: var(--text-primary); }
 .toggle button:focus-visible { outline: 2px solid var(--series-1); }
-.chev { display: inline-block; transition: transform .25s; }
+.chev { flex: none; fill: currentColor; transition: transform .25s; } /* an SVG, so it turns around its own center */
 .card[data-expanded="true"] .chev { transform: rotate(180deg); }
 
 .chart { position: relative; }

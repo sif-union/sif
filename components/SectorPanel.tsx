@@ -155,16 +155,28 @@ export default function SectorPanel({ data, group, period, focusTicker, from, ac
     return () => removeEventListener("keydown", onKey);
   }, [active, expanded]);
 
-  // Expanding a row scrolls it to the middle of the space under the header (or its top just under the header if it's taller).
-  function toggle(ticker: string, card: HTMLElement) {
+  // Expanding: if the whole row fits, center it under the header; if not, bring the new chart & news
+  // part up to just under the header, never scrolling up. Collapsing: if you tapped in the part that
+  // disappears, scroll up so the closed row's bottom lands where you tapped.
+  function toggle(ticker: string, card: HTMLElement, tapY: number | null) {
     const open = !expanded.has(ticker);
     const next = new Set(expanded);
     open ? next.add(ticker) : next.delete(ticker);
+    const sec = panel.current!, more = card.querySelector<HTMLElement>("[data-more]")!;
+    const top = sec.getBoundingClientRect().top, s = sec.scrollTop;
+    const inPanel = (y: number) => y - top + s; // a screen y as a position inside the scrolled panel
+    // on phones the header shrinks to its compact height as the panel scrolls
+    const headH = headSize.current.compact || head.current!.offsetHeight, visible = sec.clientHeight - headH;
     if (open) {
-      const finalHeight = card.offsetHeight + card.querySelector("[data-more]")!.scrollHeight;
-      const headH = head.current!.offsetHeight, visible = panel.current!.clientHeight - headH;
-      const top = finalHeight <= visible ? card.offsetTop - headH - (visible - finalHeight) / 2 : card.offsetTop - headH - 16;
-      animateScroll(panel.current!, Math.max(0, top), 260);
+      const finalHeight = card.offsetHeight + more.scrollHeight;
+      const to = finalHeight <= visible
+        ? inPanel(card.getBoundingClientRect().top) - headH - (visible - finalHeight) / 2
+        : Math.max(s, inPanel(more.getBoundingClientRect().top) - headH - 16);
+      animateScroll(sec, Math.max(0, to), 260);
+    } else {
+      const y = tapY ?? card.querySelector("button")!.getBoundingClientRect().top;
+      const closedBottom = inPanel(card.getBoundingClientRect().bottom) - more.offsetHeight;
+      animateScroll(sec, Math.max(0, Math.min(s, closedBottom - (y - top))), 260);
     }
     setExpanded(next);
     settleFocus();
@@ -221,7 +233,7 @@ export default function SectorPanel({ data, group, period, focusTicker, from, ac
         <div className={styles.cards}>
           {group.holdings.map((t) => (
             <HoldingCard key={t} holding={data.holdings[t]} period={period} expanded={expanded.has(t)} hidden={!matches.has(t)}
-              onToggle={(card) => toggle(t, card)} />
+              onToggle={(card, tapY) => toggle(t, card, tapY)} />
           ))}
         </div>
         {!matches.size && <p className={styles.empty}>No holdings match your search.</p>}

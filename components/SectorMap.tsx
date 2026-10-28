@@ -32,9 +32,10 @@ export default function SectorMap({ data, period, onOpen }: Props) {
           const overweight = g.vtiWeight == null ? null : g.weight - g.vtiWeight;
           const meta = overweight != null ? `${pp(overweight)} vs VTI` : g.kind === "cash" ? "Cash" : "ETF theme";
           const c = contributionOf(g.name);
+          const size = w < 70 || h < 46 ? "xxs" : w < 120 || h < 90 ? "xs" : w < 190 || h < 140 ? "s" : "l";
+          const show = linesThatFit(g.name, w, h, size);
           return (
-            <button key={g.name} className={styles.block} data-group={g.name}
-              data-size={w < 70 || h < 46 ? "xxs" : w < 120 || h < 90 ? "xs" : w < 190 || h < 140 ? "s" : undefined}
+            <button key={g.name} className={styles.block} data-group={g.name} data-size={size}
               data-strong={fill?.strong || undefined} data-hatched={!fill || undefined}
               style={{ ...box(n), background: fill?.background }}
               aria-label={`${g.name}, ${share(g.weight)} of fund, ${meta}`}
@@ -49,11 +50,11 @@ export default function SectorMap({ data, period, onOpen }: Props) {
                 <TipRow label={`Contribution (${period})`} value={pp(c, 2)} />
                 <div className={styles.tipNote}>{g.holdings.join(", ")}</div>
               </>)}>
-              <span className={styles.bname}>{g.name}</span>
+              {show.nameLines > 0 && <span className={styles.bname} data-lines={show.nameLines}>{g.name}</span>}
               <span className={styles.bweight}>{share(g.weight)}</span>
-              <span className={styles.bmeta}>{meta}</span>
-              <span className={`${styles.bmeta} ${styles.bcontrib}`}>{pp(c, 2)} contribution · {period}</span>
-              <span className={styles.btick}>{g.holdings.join(" · ")}</span>
+              {show.meta && <span className={styles.bmeta}>{meta}</span>}
+              {show.contribution && <span className={styles.bmeta}>{pp(c, 2)} contribution · {period}</span>}
+              {show.tickers && <span className={styles.btick}>{g.holdings.join(" · ")}</span>}
             </button>
           );
         })}
@@ -73,4 +74,24 @@ export default function SectorMap({ data, period, onOpen }: Props) {
       </div>
     </>
   );
+}
+
+// Heights in px, matching Treemap.module.css. The share of the fund is always shown; the other lines
+// are added in order of importance while they fit, and each is cut off with "…" if it's too wide.
+const SHARE_PX = { l: 38, s: 28, xs: 18, xxs: 16 };
+const PAD = { l: [12, 14], s: [12, 14], xs: [8, 9], xxs: [8, 9] };
+const LINE_PX = 17, GAP = 2, NAME_CHAR_PX = 8, MIN_NAME_WIDTH = 36;
+
+function linesThatFit(label: string, w: number, h: number, size: keyof typeof SHARE_PX) {
+  const [padY, padX] = PAD[size];
+  let room = h - 2 * padY - SHARE_PX[size];
+  const fits = () => room >= LINE_PX + GAP && ((room -= LINE_PX + GAP), true);
+  const nameRoom = w - 2 * padX;
+  const name = nameRoom >= MIN_NAME_WIDTH && fits();
+  const longestWord = Math.max(...label.split(" ").map((word) => word.length)) * NAME_CHAR_PX;
+  const twoLineName = name && label.length * NAME_CHAR_PX > nameRoom && longestWord <= nameRoom && fits(); // never split a word
+  const meta = name && fits();
+  const contribution = meta && fits();
+  const tickers = contribution && fits();
+  return { nameLines: twoLineName ? 2 : name ? 1 : 0, meta, contribution, tickers };
 }
