@@ -53,10 +53,10 @@
 .bweight { font: 400 34px/1 var(--font-serif), Georgia, serif; margin-top: 4px; }
 .bmeta { font-size: 12px; line-height: 17px; opacity: .85; }
 .btick { margin-top: auto; font-size: 11px; line-height: 17px; letter-spacing: .04em; opacity: .75; font-weight: 600; }
-.block[data-size="s"] .bweight { font-size: 24px; }
-.block[data-size="xs"], .block[data-size="xxs"] { padding: 8px 9px; }
-.block[data-size="xs"] .bweight { font-size: 18px; margin: 0; }
-.block[data-size="xxs"] .bweight { font-size: 16px; margin: 0; }
+.sector[data-size="s"] .bweight { font-size: 24px; }
+.sector[data-size="xs"], .sector[data-size="xxs"] { padding: 8px 9px; }
+.sector[data-size="xs"] .bweight { font-size: 18px; margin: 0; }
+.sector[data-size="xxs"] .bweight { font-size: 16px; margin: 0; }
 
 .tipNote { margin-top: 4px; color: var(--text-muted); }
 

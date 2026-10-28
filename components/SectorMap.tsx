@@ -35,7 +35,7 @@ export default function SectorMap({ data, period, onOpen }: Props) {
           const size = w < 70 || h < 46 ? "xxs" : w < 120 || h < 90 ? "xs" : w < 190 || h < 140 ? "s" : "l";
           const show = linesThatFit(g.name, w, h, size);
           return (
-            <button key={g.name} className={styles.block} data-group={g.name} data-size={size}
+            <button key={g.name} className={`${styles.block} ${styles.sector}`} data-group={g.name} data-size={size}
               data-strong={fill?.strong || undefined} data-hatched={!fill || undefined}
               style={{ ...box(n), background: fill?.background }}
               aria-label={`${g.name}, ${share(g.weight)} of fund, ${meta}`}
